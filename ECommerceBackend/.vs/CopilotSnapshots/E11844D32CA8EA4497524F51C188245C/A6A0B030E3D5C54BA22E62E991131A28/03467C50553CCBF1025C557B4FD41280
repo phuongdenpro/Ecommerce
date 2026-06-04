@@ -1,0 +1,63 @@
+﻿using ECommerce.Application.DTOs.Admin;
+using ECommerce.Application.Interfaces;
+using ECommerce.Shared.Constants;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace ECommerce.API.Controllers;
+
+[Authorize(Roles = AppRoles.AdminOrStaff)]
+[Route("api/admin/users")]
+public class AdminUsersController : ApiControllerBase
+{
+    private readonly IAdminUserService _adminUserService;
+
+    public AdminUsersController(IAdminUserService adminUserService) => _adminUserService = adminUserService;
+
+    [HttpGet]
+    public async Task<IActionResult> GetUsers([FromQuery] AdminUserQueryDto query, CancellationToken ct) =>
+        OkResponse(await _adminUserService.GetUsersAsync(query, ct));
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetUser(Guid id, CancellationToken ct) =>
+        OkResponse(await _adminUserService.GetUserByIdAsync(id, ct));
+
+    [HttpPut("{id:guid}/status")]
+    public async Task<IActionResult> SetStatus(Guid id, [FromBody] UpdateUserStatusRequestDto request, CancellationToken ct)
+    {
+        await _adminUserService.SetUserActiveAsync(id, request.IsActive, ct);
+        return OkMessage("User status updated");
+    }
+
+    [HttpPut("{id:guid}/role")]
+    [Authorize(Roles = AppRoles.Admin)]
+    public async Task<IActionResult> SetRole(Guid id, [FromBody] UpdateUserRoleRequestDto request, CancellationToken ct)
+    {
+        await _adminUserService.SetUserRoleAsync(id, request.Role, ct);
+        return OkMessage("User role updated");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreateAdminUserRequestDto request, CancellationToken ct) =>
+        OkResponse(await _adminUserService.CreateUserAsync(request, ct), "User created");
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateAdminUserRequestDto request, CancellationToken ct) =>
+        OkResponse(await _adminUserService.UpdateUserAsync(id, request, ct), "User updated");
+
+    [HttpGet("{id:guid}/wishlist")]
+    public async Task<IActionResult> GetWishlist(Guid id, CancellationToken ct) =>
+        OkResponse(await _adminUserService.GetUserWishlistAsync(id, ct));
+
+    [HttpGet("{id:guid}/notes")]
+    public async Task<IActionResult> GetNotes(Guid id, CancellationToken ct) =>
+        OkResponse(await _adminUserService.GetUserNotesAsync(id, ct));
+
+    [HttpPut("{id:guid}/notes")]
+    public async Task<IActionResult> SetNotes(Guid id, [FromBody] UpdateUserAdminNotesRequestDto request, CancellationToken ct) =>
+        OkResponse(await _adminUserService.SetUserNotesAsync(id, request, ct), "Notes updated");
+
+    [HttpGet("{id:guid}/reviews")]
+    public async Task<IActionResult> GetReviews(Guid id, [FromQuery] ECommerce.Shared.Models.PaginationQuery query, CancellationToken ct) =>
+        OkResponse(await _adminUserService.GetUserReviewsAsync(id, query, ct));
+}

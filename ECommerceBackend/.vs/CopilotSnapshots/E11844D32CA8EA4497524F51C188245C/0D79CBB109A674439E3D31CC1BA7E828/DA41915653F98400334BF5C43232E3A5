@@ -1,0 +1,120 @@
+﻿using ECommerce.Application.Interfaces;
+using ECommerce.Domain.Entities;
+using ECommerce.Domain.Enums;
+using ECommerce.Shared.Helpers;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
+namespace ECommerce.Infrastructure.Persistence.Seed;
+
+public static class DatabaseSeeder
+{
+    public static async Task SeedAsync(IServiceProvider services)
+    {
+        using var scope = services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<ApplicationDbContext>>();
+
+        await context.Database.MigrateAsync();
+
+        if (!await context.StoreSettings.AnyAsync())
+        {
+            context.StoreSettings.Add(new StoreSettings { Id = Guid.Parse("00000000-0000-0000-0000-000000000001") });
+            await context.SaveChangesAsync();
+        }
+
+        if (await context.Users.AnyAsync())
+        {
+            logger.LogInformation("Database already seeded.");
+            return;
+        }
+
+        var admin = new User
+        {
+            FullName = "System Admin",
+            Email = "admin@ecommerce.com",
+            PasswordHash = passwordHasher.Hash("Admin@123"),
+            Role = UserRole.Admin,
+            IsActive = true
+        };
+        context.Users.Add(admin);
+
+        var electronics = new Category { Name = "Electronics", Slug = SlugHelper.GenerateSlug("Electronics"), Status = EntityStatus.Active };
+        var phones = new Category { Name = "Phones", Slug = SlugHelper.GenerateSlug("Phones"), Parent = electronics, Status = EntityStatus.Active };
+        var fashion = new Category { Name = "Fashion", Slug = SlugHelper.GenerateSlug("Fashion"), Status = EntityStatus.Active };
+        context.Categories.AddRange(electronics, phones, fashion);
+
+        var apple = new Brand { Name = "Apple", Slug = SlugHelper.GenerateSlug("Apple"), Status = EntityStatus.Active };
+        var samsung = new Brand { Name = "Samsung", Slug = SlugHelper.GenerateSlug("Samsung"), Status = EntityStatus.Active };
+        context.Brands.AddRange(apple, samsung);
+
+        await context.SaveChangesAsync();
+
+        var products = new[]
+        {
+            new Product
+            {
+                Name = "iPhone 15 Pro",
+                Slug = SlugHelper.GenerateSlug("iPhone 15 Pro"),
+                Description = "Latest Apple flagship smartphone.",
+                Price = 999,
+                DiscountPrice = 899,
+                StockQuantity = 50,
+                SKU = "IP15PRO-128",
+                CategoryId = phones.Id,
+                BrandId = apple.Id,
+                Status = ProductStatus.Active,
+                IsFeatured = true,
+                Images = { new ProductImage { ImageUrl = "/uploads/seed/iphone15.jpg", IsPrimary = true, SortOrder = 0 } }
+            },
+            new Product
+            {
+                Name = "Samsung Galaxy S24",
+                Slug = SlugHelper.GenerateSlug("Samsung Galaxy S24"),
+                Description = "Premium Android smartphone.",
+                Price = 899,
+                StockQuantity = 40,
+                SKU = "SGS24-256",
+                CategoryId = phones.Id,
+                BrandId = samsung.Id,
+                Status = ProductStatus.Active,
+                IsFeatured = true,
+                Images = { new ProductImage { ImageUrl = "/uploads/seed/galaxys24.jpg", IsPrimary = true, SortOrder = 0 } }
+            },
+            new Product
+            {
+                Name = "Casual T-Shirt",
+                Slug = SlugHelper.GenerateSlug("Casual T-Shirt"),
+                Description = "Comfortable cotton t-shirt.",
+                Price = 29.99m,
+                StockQuantity = 200,
+                SKU = "TSHIRT-001",
+                CategoryId = fashion.Id,
+                BrandId = samsung.Id,
+                Status = ProductStatus.Active,
+                Images = { new ProductImage { ImageUrl = "/uploads/seed/tshirt.jpg", IsPrimary = true, SortOrder = 0 } }
+            }
+        };
+        context.Products.AddRange(products);
+
+        context.Coupons.Add(new Coupon
+        {
+            Code = "WELCOME10",
+            Description = "10% off for new customers",
+            DiscountType = CouponDiscountType.Percentage,
+            DiscountValue = 10,
+            MinOrderAmount = 50,
+            MaxDiscountAmount = 100,
+            StartDate = DateTime.UtcNow.AddDays(-30),
+            EndDate = DateTime.UtcNow.AddYears(1),
+            UsageLimit = 1000,
+            IsActive = true
+        });
+
+        context.Carts.Add(new Cart { UserId = admin.Id });
+        await context.SaveChangesAsync();
+        logger.LogInformation("Database seeded successfully.");
+    }
+}

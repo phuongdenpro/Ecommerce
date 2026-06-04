@@ -1,0 +1,161 @@
+﻿using ECommerce.Application.DTOs.Cart;
+using ECommerce.Application.Interfaces;
+using ECommerce.Domain.Entities;
+using ECommerce.Domain.Enums;
+using ECommerce.Domain.Exceptions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
+namespace ECommerce.Application.Services;
+
+public class CartService : ICartService
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ILogger<CartService> _logger;
+
+    public CartService(IApplicationDbContext context, ILogger<CartService> logger)
+    {
+        _context = context;
+        _logger = logger;
+    }
+
+    public async Task<CartDto> GetCartAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var cart = await GetOrCreateCartAsync(userId, cancellationToken);
+        return MapCart(cart);
+    }
+
+    public async Task<CartDto> AddItemAsync(Guid userId, AddCartItemRequestDto request, CancellationToken cancellationToken = default)
+    {
+        if (request.Quantity < 1) throw new BadRequestException("Quantity must be at least 1.");
+
+        // Load product as no-tracking to avoid keeping unnecessary tracked state
+        var product = await _context.Products.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == request.ProductId && !p.IsDeleted && p.Status == ProductStatus.Active, cancellationToken)
+            ?? throw new NotFoundException("Product not found.");
+
+        if (product.StockQuantity < request.Quantity)
+            throw new BadRequestException("Insufficient stock.");
+
+        var cart = await GetOrCreateCartAsync(userId, cancellationToken, track: true);
+        var existing = cart.Items.FirstOrDefault(i => i.ProductId == request.ProductId);
+        if (existing is not null)
+        {
+            var newQty = existing.Quantity + request.Quantity;
+            if (product.StockQuantity < newQty) throw new BadRequestException("Insufficient stock.");
+            existing.Quantity = newQty;
+            existing.UpdatedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            cart.Items.Add(new CartItem { CartId = cart.Id, ProductId = request.ProductId, Quantity = request.Quantity });
+        }
+
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            _logger.LogWarning(ex, "Concurrency exception while adding cart item for user {UserId} product {ProductId}", userId, request.ProductId);
+            // Do not retry on same DbContext. Return friendly Vietnamese message.
+            throw new ConflictException("Không thể thêm vào giỏ hàng vì có thay đổi đồng thời. Vui lòng tải lại trang và thử lại.");
+        }
+        cart = await GetOrCreateCartAsync(userId, cancellationToken);
+        return MapCart(cart);
+    }
+
+    public async Task<CartDto> UpdateItemAsync(Guid userId, Guid itemId, UpdateCartItemRequestDto request, CancellationToken cancellationToken = default)
+    {
+        if (request.Quantity < 1) throw new BadRequestException("Quantity must be at least 1.");
+
+        var cart = await GetOrCreateCartAsync(userId, cancellationToken, track: true);
+        var item = cart.Items.FirstOrDefault(i => i.Id == itemId)
+            ?? throw new NotFoundException("Cart item not found.");
+
+        var product = await _context.Products.FindAsync([item.ProductId], cancellationToken)
+            ?? throw new NotFoundException("Product not found.");
+        if (product.StockQuantity < request.Quantity)
+            throw new BadRequestException("Insufficient stock.");
+
+        item.Quantity = request.Quantity;
+        item.UpdatedAt = DateTime.UtcNow;
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            _logger.LogWarning(ex, "Concurrency exception while updating cart item {ItemId} for user {UserId}", itemId, userId);
+            throw new ConflictException("Không thể cập nhật giỏ hàng vì có thay đổi đồng thời. Vui lòng tải lại trang và thử lại.");
+        }
+        cart = await GetOrCreateCartAsync(userId, cancellationToken);
+        return MapCart(cart);
+    }
+
+    public async Task<CartDto> RemoveItemAsync(Guid userId, Guid itemId, CancellationToken cancellationToken = default)
+    {
+        var cart = await GetOrCreateCartAsync(userId, cancellationToken, track: true);
+        var item = cart.Items.FirstOrDefault(i => i.Id == itemId)
+            ?? throw new NotFoundException("Cart item not found.");
+        _context.CartItems.Remove(item);
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            _logger.LogWarning(ex, "Concurrency exception while removing cart item {ItemId} for user {UserId}", itemId, userId);
+            throw new ConflictException("Không thể xóa mục trong giỏ hàng vì có thay đổi đồng thời. Vui lòng tải lại trang và thử lại.");
+        }
+        cart = await GetOrCreateCartAsync(userId, cancellationToken);
+        return MapCart(cart);
+    }
+
+    private async Task<Cart> GetOrCreateCartAsync(Guid userId, CancellationToken ct, bool track = false)
+    {
+        var query = _context.Carts
+            .Include(c => c.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Images)
+            .Where(c => c.UserId == userId);
+
+        var cart = track
+            ? await query.FirstOrDefaultAsync(ct)
+            : await query.AsNoTracking().FirstOrDefaultAsync(ct);
+
+        if (cart is not null) return cart;
+
+        cart = new Cart { UserId = userId };
+        _context.Carts.Add(cart);
+        await _context.SaveChangesAsync(ct);
+        return await _context.Carts.Include(c => c.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Images)
+            .AsNoTracking().FirstAsync(c => c.Id == cart.Id, ct);
+    }
+
+    private static CartDto MapCart(Cart cart)
+    {
+        var items = cart.Items.Select(i =>
+        {
+            var price = i.Product.DiscountPrice ?? i.Product.Price;
+            return new CartItemDto
+            {
+                Id = i.Id,
+                ProductId = i.ProductId,
+                ProductName = i.Product.Name,
+                ProductImageUrl = i.Product.Images.OrderBy(x => x.SortOrder).FirstOrDefault()?.ImageUrl,
+                UnitPrice = price,
+                Quantity = i.Quantity,
+                StockQuantity = i.Product.StockQuantity,
+                SubTotal = price * i.Quantity,
+                IsInStock = i.Product.StockQuantity >= i.Quantity
+            };
+        }).ToList();
+
+        return new CartDto
+        {
+            Id = cart.Id,
+            Items = items,
+            SubTotal = items.Sum(x => x.SubTotal),
+            TotalItems = items.Sum(x => x.Quantity)
+        };
+    }
+}
