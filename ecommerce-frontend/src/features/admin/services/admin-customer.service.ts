@@ -7,6 +7,7 @@ import type {
 import type { WishlistItem, Address } from "@/types";
 import { apiClient } from "@/lib/api/client";
 import { unwrapData, unwrapPagedData } from "@/lib/api-response";
+import { log } from "console";
 
 export interface CustomerQuery extends PaginationQuery {
   role?: string;
@@ -91,7 +92,11 @@ export const adminCustomerService = {
     const { data } = await apiClient.put<ApiResponse<Address>>(
       `/admin/users/${id}/addresses/${addressId}/default`,
     );
-    return unwrapData(data);
+    if (!data.success) {
+    throw new Error(data.message || "Đặt địa chỉ mặc định thất bại");
+  }
+
+    return data;
   },
 
   async getWishlist(id: string) {

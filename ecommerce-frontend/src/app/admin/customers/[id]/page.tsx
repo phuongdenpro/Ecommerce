@@ -323,7 +323,7 @@ export default function CustomerDetailPage() {
                         <p className="text-slate-500">{a.phoneNumber}</p>
                       </div>
                       <div className="flex flex-wrap gap-2 pt-3 sm:pt-0">
-                        <Button size="sm" variant="outline" onClick={() => startEditAddress(a)}>
+                        <Button size="sm" variant="outline" onClick={() => startEditAddress(a as Address)}>
                           Sửa
                         </Button>
                         <Button size="sm" variant="outline" onClick={() => deleteAddress(a.id)}>

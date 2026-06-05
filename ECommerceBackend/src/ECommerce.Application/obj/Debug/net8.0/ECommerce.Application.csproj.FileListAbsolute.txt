@@ -15,3 +15,4 @@ C:\Users\PC\source\repos\Ecommerce\ECommerceBackend\src\ECommerce.Application\ob
 C:\Users\PC\source\repos\Ecommerce\ECommerceBackend\src\ECommerce.Application\obj\Debug\net8.0\refint\ECommerce.Application.dll
 C:\Users\PC\source\repos\Ecommerce\ECommerceBackend\src\ECommerce.Application\obj\Debug\net8.0\ECommerce.Application.pdb
 C:\Users\PC\source\repos\Ecommerce\ECommerceBackend\src\ECommerce.Application\obj\Debug\net8.0\ref\ECommerce.Application.dll
+C:\Users\PC\source\repos\Ecommerce\ECommerceBackend\src\ECommerce.Application\obj\Debug\net8.0\ECommerce.Application.sourcelink.json

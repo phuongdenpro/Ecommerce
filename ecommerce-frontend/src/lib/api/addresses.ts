@@ -19,6 +19,7 @@ export const addressesApi = {
       `/addresses/${id}`,
       payload,
     );
+    
     return unwrapData(data);
   },
 
@@ -30,6 +31,10 @@ export const addressesApi = {
     const { data } = await apiClient.put<ApiResponse<Address>>(
       `/addresses/${id}/default`,
     );
-    return unwrapData(data);
+    if (!data.success) {
+    throw new Error(data.message || "Đặt mặc định thất bại");
+  }
+
+  return data;
   },
 };

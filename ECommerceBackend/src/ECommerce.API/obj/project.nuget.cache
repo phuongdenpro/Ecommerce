@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Y0lXIKCn+yA=",
+  "dgSpecHash": "g56QnplArB8=",
   "success": true,
-  "projectFilePath": "C:\\Users\\PC\\source\\repos\\Ecommerce\\ECommerceBackend\\src\\ECommerce.API\\ECommerce.API.csproj",
+  "projectFilePath": "C:\\Users\\PC\\source\\repos\\Ecommerce\\ECommerceBackend\\src\\Ecommerce.API\\ECommerce.API.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\PC\\.nuget\\packages\\automapper\\13.0.1\\automapper.13.0.1.nupkg.sha512",
     "C:\\Users\\PC\\.nuget\\packages\\bcrypt.net-next\\4.2.0\\bcrypt.net-next.4.2.0.nupkg.sha512",

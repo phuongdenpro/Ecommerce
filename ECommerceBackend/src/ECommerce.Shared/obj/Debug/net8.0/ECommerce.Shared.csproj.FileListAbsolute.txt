@@ -13,3 +13,4 @@ C:\Users\PC\source\repos\Ecommerce\ECommerceBackend\src\ECommerce.Shared\obj\Deb
 C:\Users\PC\source\repos\Ecommerce\ECommerceBackend\src\ECommerce.Shared\obj\Debug\net8.0\refint\ECommerce.Shared.dll
 C:\Users\PC\source\repos\Ecommerce\ECommerceBackend\src\ECommerce.Shared\obj\Debug\net8.0\ECommerce.Shared.pdb
 C:\Users\PC\source\repos\Ecommerce\ECommerceBackend\src\ECommerce.Shared\obj\Debug\net8.0\ref\ECommerce.Shared.dll
+C:\Users\PC\source\repos\Ecommerce\ECommerceBackend\src\ECommerce.Shared\obj\Debug\net8.0\ECommerce.Shared.sourcelink.json
