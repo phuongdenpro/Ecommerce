@@ -1,0 +1,19 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+
+# .NET
+bin/
+obj/
+
+# VSCode
+.vscode/
+
+# Node
+node_modules/
+.next/
+
+# Flutter
+.dart_tool/
+build/
