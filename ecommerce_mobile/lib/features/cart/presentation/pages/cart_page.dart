@@ -34,6 +34,17 @@ class _CartPageState extends State<CartPage> {
     if (mounted) setState(() {});
   }
 
+  void _updateQuantity(int productId, int newQuantity) {
+    final items = _cartService.items;
+    final item = items.firstWhere((i) => i.product.id == productId);
+    if (newQuantity <= 0) {
+      _cartService.removeFromCart(productId);
+    } else if (newQuantity <= item.product.quantity) {
+      item.quantity = newQuantity;
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final items = _cartService.items;
@@ -108,23 +119,96 @@ class _CartPageState extends State<CartPage> {
                                             ),
                                             const SizedBox(height: 6),
                                             Text(
-                                              'SL: ${item.quantity} × ${formatCurrency(item.product.price)}',
+                                              formatCurrency(item.product.price),
                                               style: Theme.of(context).textTheme.bodyMedium,
                                             ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              formatCurrency(item.totalPrice),
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w800,
-                                                color: AppColors.primary,
+                                            const SizedBox(height: 8),
+                                            SizedBox(
+                                              height: 28,
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  InkWell(
+                                                    onTap: item.quantity > 1
+                                                        ? () => _updateQuantity(
+                                                              item.product.id,
+                                                              item.quantity - 1,
+                                                            )
+                                                        : null,
+                                                    child: Container(
+                                                      width: 28,
+                                                      decoration: BoxDecoration(
+                                                        border: Border.all(color: AppColors.border),
+                                                        borderRadius: const BorderRadius.only(
+                                                          topLeft: Radius.circular(6),
+                                                          bottomLeft: Radius.circular(6),
+                                                        ),
+                                                      ),
+                                                      child: const Center(
+                                                        child: Icon(Icons.remove, size: 16),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    width: 40,
+                                                    decoration:
+                                                        BoxDecoration(border: Border.all(color: AppColors.border)),
+                                                    child: Center(
+                                                      child: Text(
+                                                        '${item.quantity}',
+                                                        style: const TextStyle(fontWeight: FontWeight.w600),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  InkWell(
+                                                    onTap: item.quantity < item.product.quantity
+                                                        ? () => _updateQuantity(
+                                                              item.product.id,
+                                                              item.quantity + 1,
+                                                            )
+                                                        : null,
+                                                    child: Container(
+                                                      width: 28,
+                                                      decoration: BoxDecoration(
+                                                        border: Border.all(color: AppColors.border),
+                                                        borderRadius: const BorderRadius.only(
+                                                          topRight: Radius.circular(6),
+                                                          bottomRight: Radius.circular(6),
+                                                        ),
+                                                      ),
+                                                      child: const Center(
+                                                        child: Icon(Icons.add, size: 16),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
                                           ],
                                         ),
                                       ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
-                                        onPressed: () => _cartService.removeFromCart(item.product.id),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            formatCurrency(item.totalPrice),
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w800,
+                                              color: AppColors.primary,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          IconButton(
+                                            icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+                                            onPressed: () => _cartService.removeFromCart(item.product.id),
+                                            iconSize: 20,
+                                            constraints: const BoxConstraints(
+                                              minWidth: 36,
+                                              minHeight: 36,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
@@ -134,36 +218,43 @@ class _CartPageState extends State<CartPage> {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-                          decoration: const BoxDecoration(
+                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                          decoration: BoxDecoration(
                             color: AppColors.card,
-                            border: Border(top: BorderSide(color: AppColors.border)),
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('Tổng cộng', style: Theme.of(context).textTheme.bodyMedium),
-                                  Text(
-                                    formatCurrency(_cartService.totalPrice),
-                                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                          fontSize: 22,
-                                          color: AppColors.primary,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              CustomButton(
-                                label: 'Thanh toán',
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Tính năng thanh toán đang phát triển')),
-                                  );
-                                },
+                            border: const Border(top: BorderSide(color: AppColors.border)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 12,
+                                offset: const Offset(0, -4),
                               ),
                             ],
+                          ),
+                          child: SafeArea(
+                            top: false,
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('Tổng cộng', style: Theme.of(context).textTheme.bodyMedium),
+                                    Text(
+                                      formatCurrency(_cartService.totalPrice),
+                                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                            fontSize: 22,
+                                            color: AppColors.primary,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                CustomButton(
+                                  label: 'Tiến hành thanh toán',
+                                  onPressed: () => context.go(RoutePaths.checkout),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],

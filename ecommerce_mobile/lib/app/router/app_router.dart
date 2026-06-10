@@ -7,7 +7,10 @@ import 'package:flutter_restapi/features/auth/presentation/pages/login_page.dart
 import 'package:flutter_restapi/features/auth/presentation/pages/register_page.dart';
 import 'package:flutter_restapi/features/cart/presentation/pages/cart_page.dart';
 import 'package:flutter_restapi/features/catalog/presentation/pages/catalog_page.dart';
+import 'package:flutter_restapi/features/checkout/presentation/pages/checkout_page.dart';
 import 'package:flutter_restapi/features/home/presentation/pages/home_page.dart';
+import 'package:flutter_restapi/features/orders/presentation/pages/order_detail_page.dart';
+import 'package:flutter_restapi/features/orders/presentation/pages/order_success_page.dart';
 import 'package:flutter_restapi/features/orders/presentation/pages/orders_page.dart';
 import 'package:flutter_restapi/features/product/presentation/pages/product_detail_page.dart';
 import 'package:flutter_restapi/features/product/presentation/pages/product_form_page.dart';
@@ -130,6 +133,24 @@ class AppRouter {
           path: RoutePaths.changePassword,
           parentNavigatorKey: rootNavigatorKey,
           builder: (context, state) => const ChangePasswordPage(),
+        ),
+        GoRoute(
+          path: RoutePaths.checkout,
+          parentNavigatorKey: rootNavigatorKey,
+          builder: (context, state) => const CheckoutPage(),
+        ),
+        GoRoute(
+          path: RoutePaths.orderSuccess,
+          parentNavigatorKey: rootNavigatorKey,
+          builder: (context, state) => const OrderSuccessPage(),
+        ),
+        GoRoute(
+          path: '/orders/:id',
+          parentNavigatorKey: rootNavigatorKey,
+          builder: (context, state) {
+            final id = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
+            return OrderDetailPage(orderId: id);
+          },
         ),
       ],
     );

@@ -1,34 +1,51 @@
 import '../../domain/entities/order_entity.dart';
+import '../../domain/repositories/order_repository.dart';
+import '../datasources/order_remote_datasource.dart';
 
-/// Repository mẫu — thay bằng API thật khi backend sẵn sàng.
-class OrderRepository {
-  Future<List<OrderEntity>> getOrders() async {
-    await Future<void>.delayed(const Duration(milliseconds: 400));
-    return [
-      OrderEntity(
-        id: 'DH-2026-001',
-        productName: 'Tai nghe Bluetooth Pro',
-        quantity: 1,
-        totalAmount: 890000,
-        createdAt: DateTime.now().subtract(const Duration(days: 1)),
-        status: OrderStatus.processing,
-      ),
-      OrderEntity(
-        id: 'DH-2026-002',
-        productName: 'Bàn phím cơ RGB',
-        quantity: 2,
-        totalAmount: 2400000,
-        createdAt: DateTime.now().subtract(const Duration(days: 3)),
-        status: OrderStatus.delivered,
-      ),
-      OrderEntity(
-        id: 'DH-2026-003',
-        productName: 'Chuột không dây',
-        quantity: 1,
-        totalAmount: 450000,
-        createdAt: DateTime.now().subtract(const Duration(days: 5)),
-        status: OrderStatus.shipped,
-      ),
-    ];
+class OrderRepositoryImpl implements OrderRepository {
+  final OrderRemoteDataSource _remote;
+
+  OrderRepositoryImpl(this._remote);
+
+  @override
+  Future<List<OrderEntity>> getOrders({
+    required int page,
+    required int pageSize,
+  }) async {
+    final models = await _remote.getOrders(page: page, pageSize: pageSize);
+    return models.map((m) => m.toEntity()).toList();
   }
+
+  @override
+  Future<OrderEntity> getOrderById(int id) async {
+    final model = await _remote.getOrderById(id);
+    return model.toEntity();
+  }
+
+  @override
+  Future<OrderEntity> createOrder({
+    required List<({int productId, int quantity})> items,
+    required String recipientName,
+    required String recipientPhone,
+    required String shippingAddress,
+    required String paymentMethod,
+    String? notes,
+  }) async {
+    final model = await _remote.createOrder(
+      items: items,
+      recipientName: recipientName,
+      recipientPhone: recipientPhone,
+      shippingAddress: shippingAddress,
+      paymentMethod: paymentMethod,
+      notes: notes,
+    );
+    return model.toEntity();
+  }
+
+  @override
+  Future<void> cancelOrder(int orderId) => _remote.cancelOrder(orderId);
+
+  @override
+  Future<void> updateOrderStatus(int orderId, String status) =>
+      _remote.updateOrderStatus(orderId, status);
 }

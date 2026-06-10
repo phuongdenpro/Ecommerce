@@ -5,6 +5,8 @@ abstract final class RoutePaths {
   static const home = '/home';
   static const catalog = '/catalog';
   static const cart = '/cart';
+  static const checkout = '/checkout';
+  static const orderSuccess = '/order-success';
   static const orders = '/orders';
   static const account = '/account';
 
@@ -16,4 +18,5 @@ abstract final class RoutePaths {
   static const changePassword = '/profile/change-password';
 
   static String product(int id) => '/product/$id';
+  static String orderDetail(int id) => '/orders/$id';
 }

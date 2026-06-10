@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_restapi/app/router/route_paths.dart';
 import 'package:flutter_restapi/core/theme/app_colors.dart';
 import 'package:flutter_restapi/core/utils/formatters.dart';
+import 'package:flutter_restapi/features/cart/presentation/providers/cart_providers.dart';
 import 'package:flutter_restapi/features/cart/services/cart_service.dart';
 import 'package:flutter_restapi/features/product/presentation/providers/product_providers.dart';
 import 'package:flutter_restapi/core/widgets/custom_button.dart';
@@ -29,6 +30,37 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
       context.pop();
     } else {
       context.go(RoutePaths.home);
+    }
+  }
+
+  Future<void> _addToCart(BuildContext context, WidgetRef ref) async {
+    try {
+      // Try using API-based cart first
+      await ref.read(cartControllerProvider.notifier).addToCart(
+            widget.productId,
+            _selectedQuantity,
+          );
+      
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Đã thêm $_selectedQuantity sản phẩm vào giỏ'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    } catch (e) {
+      // Fallback to local cart service if API fails
+      final product = ref.read(productDetailProvider(widget.productId)).value;
+      if (product != null) {
+        CartService().addToCart(product, _selectedQuantity);
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Đã thêm $_selectedQuantity sản phẩm vào giỏ'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
     }
   }
 
@@ -191,12 +223,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                   child: CustomButton(
                     label: inStock ? 'Thêm vào giỏ hàng' : 'Sản phẩm đã hết',
                     enabled: inStock,
-                    onPressed: () {
-                      CartService().addToCart(product, _selectedQuantity);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Đã thêm $_selectedQuantity sản phẩm vào giỏ')),
-                      );
-                    },
+                    onPressed: () => _addToCart(context, ref),
                     color: inStock ? AppColors.primary : AppColors.textSecondary,
                   ),
                 ),

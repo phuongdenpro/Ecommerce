@@ -1,47 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:flutter_restapi/app/router/route_paths.dart';
 import 'package:flutter_restapi/core/theme/app_colors.dart';
 import 'package:flutter_restapi/core/utils/formatters.dart';
-import 'package:flutter_restapi/features/orders/data/repositories/order_repository.dart';
 import 'package:flutter_restapi/features/orders/domain/entities/order_entity.dart';
+import 'package:flutter_restapi/features/orders/presentation/providers/order_providers.dart';
 import 'package:flutter_restapi/core/widgets/empty_state.dart';
+import 'package:flutter_restapi/core/widgets/error_widget.dart';
 import 'package:flutter_restapi/core/widgets/loading_widget.dart';
 
-class OrdersPage extends StatefulWidget {
+class OrdersPage extends ConsumerWidget {
   const OrdersPage({super.key});
 
-  @override
-  State<OrdersPage> createState() => _OrdersPageState();
-}
-
-class _OrdersPageState extends State<OrdersPage> {
-  final _repository = OrderRepository();
-  late Future<List<OrderEntity>> _futureOrders;
-
-  @override
-  void initState() {
-    super.initState();
-    _futureOrders = _repository.getOrders();
-  }
-
-  Future<void> _refresh() async {
-    setState(() {
-      _futureOrders = _repository.getOrders();
-    });
-    await _futureOrders;
-  }
-
   Color _statusColor(OrderStatus status) => switch (status) {
-        OrderStatus.delivered => AppColors.success,
+        OrderStatus.completed => AppColors.success,
         OrderStatus.cancelled => AppColors.error,
-        OrderStatus.shipped => AppColors.accent,
+        OrderStatus.shipping => AppColors.accent,
         _ => AppColors.primary,
       };
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ordersAsync = ref.watch(orderListProvider);
+
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
@@ -73,95 +56,119 @@ class _OrdersPageState extends State<OrdersPage> {
               ),
             ),
             Expanded(
-              child: RefreshIndicator(
-                onRefresh: _refresh,
-                child: FutureBuilder<List<OrderEntity>>(
-                  future: _futureOrders,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState != ConnectionState.done) {
-                      return const LoadingWidget(message: 'Đang tải đơn hàng...');
-                    }
-
-                    final orders = snapshot.data ?? [];
-                    if (orders.isEmpty) {
-                      return const EmptyState(
+              child: ordersAsync.when(
+                loading: () => const LoadingWidget(message: 'Đang tải đơn hàng...'),
+                error: (error, _) => ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    SizedBox(
+                      height: MediaQuery.sizeOf(context).height * 0.5,
+                      child: AppErrorWidget(
+                        message: error.toString(),
+                        onRetry: () => ref.read(orderListProvider.notifier).refresh(),
+                      ),
+                    ),
+                  ],
+                ),
+                data: (state) => state.items.isEmpty
+                    ? const EmptyState(
                         icon: Icons.receipt_long_outlined,
                         title: 'Chưa có đơn hàng',
                         subtitle: 'Đơn hàng của bạn sẽ hiển thị tại đây.',
-                      );
-                    }
+                      )
+                    : RefreshIndicator(
+                        onRefresh: () async {
+                          await ref.read(orderListProvider.notifier).refresh();
+                        },
+                        child: ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.all(16),
+                          itemCount: state.items.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final order = state.items[index];
+                            final statusColor = _statusColor(order.status);
 
-                    return ListView.separated(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(16),
-                      itemCount: orders.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final order = orders[index];
-                        final statusColor = _statusColor(order.status);
-
-                        return Card(
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(16),
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Chi tiết ${order.id} — sắp ra mắt')),
-                              );
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
+                            return Card(
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(16),
+                                onTap: () => context.go(
+                                  RoutePaths.orderDetail(order.id),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        order.id,
-                                        style: Theme.of(context).textTheme.titleMedium,
-                                      ),
-                                      const Spacer(),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: statusColor.withValues(alpha: 0.1),
-                                          borderRadius: BorderRadius.circular(20),
-                                        ),
-                                        child: Text(
-                                          order.statusLabel,
-                                          style: TextStyle(
-                                            color: statusColor,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  order.orderCode,
+                                                  style: Theme.of(context).textTheme.titleMedium,
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  'ngày ${order.createdAt.day}/${order.createdAt.month}/${order.createdAt.year}',
+                                                  style: Theme.of(context).textTheme.bodySmall,
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: statusColor.withValues(alpha: 0.1),
+                                              borderRadius: BorderRadius.circular(20),
+                                            ),
+                                            child: Text(
+                                              order.statusLabel,
+                                              style: TextStyle(
+                                                color: statusColor,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Text(order.productName, style: Theme.of(context).textTheme.bodyLarge),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      Text('SL: ${order.quantity}', style: Theme.of(context).textTheme.bodyMedium),
-                                      const Spacer(),
+                                      const SizedBox(height: 10),
                                       Text(
-                                        formatCurrency(order.totalAmount),
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w800,
-                                          color: AppColors.primary,
-                                        ),
+                                        '${order.totalItems} sản phẩm',
+                                        style: Theme.of(context).textTheme.bodyMedium,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            'Tổng cộng',
+                                            style: Theme.of(context).textTheme.bodyMedium,
+                                          ),
+                                          Text(
+                                            formatCurrency(order.totalAmount),
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w800,
+                                              color: AppColors.primary,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
-                                ],
+                                ),
                               ),
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
+                            );
+                          },
+                        ),
+                      ),
               ),
             ),
           ],

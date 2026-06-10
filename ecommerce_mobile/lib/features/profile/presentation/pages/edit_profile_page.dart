@@ -45,7 +45,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
     setState(() => _errorMessage = null);
 
-    final user = ref.read(currentUserProvider).valueOrNull;
     final error = await ref
         .read(editProfileControllerProvider.notifier)
         .save(

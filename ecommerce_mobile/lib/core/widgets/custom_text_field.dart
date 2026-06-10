@@ -36,7 +36,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
       children: [
         Text(
           widget.label,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 14),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontSize: 14),
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -45,14 +47,24 @@ class _CustomTextFieldState extends State<CustomTextField> {
           obscureText: widget.obscureText && _obscured,
           keyboardType: widget.keyboardType,
           decoration: InputDecoration(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 20, // tăng chiều cao
+            ),
             hintText: widget.hintText,
             prefixIcon: widget.prefixIcon != null
-                ? Icon(widget.prefixIcon, size: 22, color: AppColors.textSecondary)
+                ? Icon(
+                    widget.prefixIcon,
+                    size: 22,
+                    color: AppColors.textSecondary,
+                  )
                 : null,
             suffixIcon: widget.obscureText
                 ? IconButton(
                     icon: Icon(
-                      _obscured ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                      _obscured
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
                       size: 22,
                       color: AppColors.textSecondary,
                     ),
