@@ -16,7 +16,7 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final inStock = product.quantity > 0;
+    final inStock = product.inStock;
 
     return Material(
       color: Colors.transparent,
@@ -62,6 +62,22 @@ class ProductCard extends StatelessWidget {
                           ),
                         ),
                       ),
+                    if (product.hasDiscount)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.error,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'Giảm giá',
+                            style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -87,13 +103,24 @@ class ProductCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          formatCurrency(product.price),
+                          formatCurrency(product.displayPrice),
                           style: const TextStyle(
                             fontWeight: FontWeight.w800,
                             color: AppColors.primary,
                             fontSize: 15,
                           ),
                         ),
+                        if (product.hasDiscount) ...[
+                          const SizedBox(width: 6),
+                          Text(
+                            formatCurrency(product.price),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                        ],
                         const Spacer(),
                         Icon(
                           Icons.inventory_2_outlined,
@@ -102,7 +129,7 @@ class ProductCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${product.quantity}',
+                          '${product.stockQuantity}',
                           style: TextStyle(
                             fontSize: 12,
                             color: inStock ? AppColors.textSecondary : AppColors.error,

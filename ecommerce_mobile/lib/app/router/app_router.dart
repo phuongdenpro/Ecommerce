@@ -7,11 +7,13 @@ import 'package:flutter_restapi/features/auth/presentation/pages/login_page.dart
 import 'package:flutter_restapi/features/auth/presentation/pages/register_page.dart';
 import 'package:flutter_restapi/features/cart/presentation/pages/cart_page.dart';
 import 'package:flutter_restapi/features/catalog/presentation/pages/catalog_page.dart';
+import 'package:flutter_restapi/features/checkout/checkout_args.dart';
 import 'package:flutter_restapi/features/checkout/presentation/pages/checkout_page.dart';
 import 'package:flutter_restapi/features/home/presentation/pages/home_page.dart';
 import 'package:flutter_restapi/features/orders/presentation/pages/order_detail_page.dart';
 import 'package:flutter_restapi/features/orders/presentation/pages/order_success_page.dart';
 import 'package:flutter_restapi/features/orders/presentation/pages/orders_page.dart';
+import 'package:flutter_restapi/features/payment/presentation/pages/bank_transfer_page.dart';
 import 'package:flutter_restapi/features/product/presentation/pages/product_detail_page.dart';
 import 'package:flutter_restapi/features/product/presentation/pages/product_form_page.dart';
 import 'package:flutter_restapi/features/product/presentation/pages/product_management_page.dart';
@@ -43,6 +45,10 @@ class AppRouter {
         return null;
       },
       routes: [
+        GoRoute(
+          path: RoutePaths.products,
+          redirect: (_, __) => RoutePaths.catalog,
+        ),
         GoRoute(
           path: RoutePaths.login,
           builder: (context, state) => const LoginPage(),
@@ -102,7 +108,15 @@ class AppRouter {
           path: RoutePaths.productDetail,
           parentNavigatorKey: rootNavigatorKey,
           builder: (context, state) {
-            final id = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
+            final id = state.pathParameters['id'] ?? '';
+            return ProductDetailPage(productId: id);
+          },
+        ),
+        GoRoute(
+          path: RoutePaths.productsDetail,
+          parentNavigatorKey: rootNavigatorKey,
+          builder: (context, state) {
+            final id = state.pathParameters['id'] ?? '';
             return ProductDetailPage(productId: id);
           },
         ),
@@ -120,8 +134,8 @@ class AppRouter {
           path: RoutePaths.manageFormEdit,
           parentNavigatorKey: rootNavigatorKey,
           builder: (context, state) {
-            final id = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
-            return ProductFormPage(productId: id);
+            final id = state.pathParameters['id'] ?? '';
+            return ProductFormPage(productId: id.isEmpty ? null : id);
           },
         ),
         GoRoute(
@@ -142,13 +156,27 @@ class AppRouter {
         GoRoute(
           path: RoutePaths.orderSuccess,
           parentNavigatorKey: rootNavigatorKey,
-          builder: (context, state) => const OrderSuccessPage(),
+          builder: (context, state) {
+            final args = state.extra as OrderSuccessArgs?;
+            return OrderSuccessPage(args: args);
+          },
+        ),
+        GoRoute(
+          path: RoutePaths.bankTransfer,
+          parentNavigatorKey: rootNavigatorKey,
+          builder: (context, state) {
+            final args = state.extra as BankTransferArgs?;
+            if (args == null) {
+              return const Scaffold(body: Center(child: Text('Thiếu thông tin thanh toán')));
+            }
+            return BankTransferPage(args: args);
+          },
         ),
         GoRoute(
           path: '/orders/:id',
           parentNavigatorKey: rootNavigatorKey,
           builder: (context, state) {
-            final id = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
+            final id = state.pathParameters['id'] ?? '';
             return OrderDetailPage(orderId: id);
           },
         ),

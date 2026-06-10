@@ -1,9 +1,10 @@
 class ProductEntity {
-  final int id;
+  final String id;
   final String name;
   final String description;
-  final int price;
-  final int quantity;
+  final double price;
+  final double? discountPrice;
+  final int stockQuantity;
   final String? imageUrl;
 
   const ProductEntity({
@@ -11,7 +12,15 @@ class ProductEntity {
     required this.name,
     required this.description,
     required this.price,
-    required this.quantity,
+    this.discountPrice,
+    required this.stockQuantity,
     this.imageUrl,
   });
+
+  double get displayPrice => discountPrice ?? price;
+
+  bool get hasDiscount =>
+      discountPrice != null && discountPrice! > 0 && discountPrice! < price;
+
+  bool get inStock => stockQuantity > 0;
 }

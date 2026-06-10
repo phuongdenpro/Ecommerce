@@ -4,14 +4,17 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_restapi/app/router/route_paths.dart';
 import 'package:flutter_restapi/core/theme/app_colors.dart';
 import 'package:flutter_restapi/core/widgets/custom_button.dart';
+import 'package:flutter_restapi/features/checkout/checkout_args.dart';
 
 class OrderSuccessPage extends StatelessWidget {
-  final int? orderId;
+  final OrderSuccessArgs? args;
 
-  const OrderSuccessPage({super.key, this.orderId});
+  const OrderSuccessPage({super.key, this.args});
 
   @override
   Widget build(BuildContext context) {
+    final orderCode = args?.orderCode;
+
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
@@ -42,6 +45,17 @@ class OrderSuccessPage extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
             ),
+            if (orderCode != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Mã đơn: $orderCode',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ],
             const SizedBox(height: 12),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -59,6 +73,12 @@ class OrderSuccessPage extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 children: [
+                  if (args?.orderId != null)
+                    CustomButton(
+                      label: 'Xem chi tiết đơn hàng',
+                      onPressed: () => context.go(RoutePaths.orderDetail(args!.orderId)),
+                    ),
+                  if (args?.orderId != null) const SizedBox(height: 12),
                   CustomButton(
                     label: 'Xem đơn hàng của tôi',
                     onPressed: () => context.go(RoutePaths.orders),

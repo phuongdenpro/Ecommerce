@@ -1,3 +1,4 @@
+import '../../domain/entities/cart_entity.dart';
 import '../../domain/repositories/cart_repository.dart';
 
 class UpdateCartItemUseCase {
@@ -5,9 +6,9 @@ class UpdateCartItemUseCase {
 
   UpdateCartItemUseCase(this._repository);
 
-  Future<void> call({
-    required int productId,
+  Future<CartEntity> call({
+    required String itemId,
     required int quantity,
   }) =>
-      _repository.updateCartItem(productId: productId, quantity: quantity);
+      _repository.updateCartItem(itemId: itemId, quantity: quantity);
 }

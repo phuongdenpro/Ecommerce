@@ -1,37 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:flutter_restapi/features/cart/services/cart_service.dart';
+import 'package:flutter_restapi/features/cart/presentation/providers/cart_providers.dart';
 import 'widgets/app_bottom_navigation.dart';
 
-class MainShellPage extends StatefulWidget {
+class MainShellPage extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
 
   const MainShellPage({super.key, required this.navigationShell});
 
   @override
-  State<MainShellPage> createState() => _MainShellPageState();
+  ConsumerState<MainShellPage> createState() => _MainShellPageState();
 }
 
-class _MainShellPageState extends State<MainShellPage> {
-  final CartService _cartService = CartService();
-
-  @override
-  void initState() {
-    super.initState();
-    _cartService.itemCountNotifier.addListener(_onCartChanged);
-  }
-
-  @override
-  void dispose() {
-    _cartService.itemCountNotifier.removeListener(_onCartChanged);
-    super.dispose();
-  }
-
-  void _onCartChanged() {
-    if (mounted) setState(() {});
-  }
-
+class _MainShellPageState extends ConsumerState<MainShellPage> {
   void _onTabTapped(int index) {
     widget.navigationShell.goBranch(
       index,
@@ -41,12 +24,14 @@ class _MainShellPageState extends State<MainShellPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cartBadge = ref.watch(cartItemCountProvider);
+
     return Scaffold(
       body: widget.navigationShell,
       bottomNavigationBar: AppBottomNavigation(
         currentIndex: widget.navigationShell.currentIndex,
         onTap: _onTabTapped,
-        cartBadge: _cartService.itemCountNotifier.value,
+        cartBadge: cartBadge,
       ),
     );
   }

@@ -1,11 +1,14 @@
+import 'package:flutter_restapi/core/network/api_response_parser.dart';
+
 import '../../domain/entities/product_entity.dart';
 
 class ProductModel {
-  final int id;
+  final String id;
   final String name;
   final String description;
-  final int price;
-  final int quantity;
+  final double price;
+  final double? discountPrice;
+  final int stockQuantity;
   final String? imageUrl;
 
   const ProductModel({
@@ -13,18 +16,36 @@ class ProductModel {
     required this.name,
     required this.description,
     required this.price,
-    required this.quantity,
+    this.discountPrice,
+    required this.stockQuantity,
     this.imageUrl,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
+    String? imageUrl = json['primaryImageUrl'] as String?;
+    if (imageUrl == null && json['images'] is List) {
+      final images = json['images'] as List;
+      if (images.isNotEmpty) {
+        final primary = images.cast<Map<String, dynamic>>().where(
+              (img) => img['isPrimary'] == true,
+            );
+        imageUrl = primary.isNotEmpty
+            ? primary.first['imageUrl'] as String?
+            : images.first['imageUrl'] as String?;
+      }
+    }
+  imageUrl ??= json['imageUrl'] as String?;
+
     return ProductModel(
-      id: json['id'] as int,
+      id: ApiResponseParser.parseId(json['id']),
       name: json['name']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
-      price: (json['price'] as num?)?.toInt() ?? 0,
-      quantity: (json['quantity'] as num?)?.toInt() ?? 0,
-      imageUrl: json['imageUrl'] as String?,
+      price: ApiResponseParser.parseMoney(json['price']),
+      discountPrice: json['discountPrice'] != null
+          ? ApiResponseParser.parseMoney(json['discountPrice'])
+          : null,
+      stockQuantity: ApiResponseParser.parseInt(json['stockQuantity'] ?? json['quantity']),
+      imageUrl: imageUrl,
     );
   }
 
@@ -33,7 +54,8 @@ class ProductModel {
         name: name,
         description: description,
         price: price,
-        quantity: quantity,
+        discountPrice: discountPrice,
+        stockQuantity: stockQuantity,
         imageUrl: imageUrl,
       );
 }

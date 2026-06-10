@@ -40,17 +40,23 @@ final clearCartUseCaseProvider = Provider<ClearCartUseCase>((ref) {
   return ClearCartUseCase(ref.watch(cartRepositoryProvider));
 });
 
-// Cart State Provider
 final cartProvider = FutureProvider<CartEntity>((ref) async {
   return ref.watch(getCartUseCaseProvider).call();
 });
 
-// Cart Controller for mutations
+final cartItemCountProvider = Provider<int>((ref) {
+  final cartAsync = ref.watch(cartProvider);
+  return cartAsync.maybeWhen(
+    data: (cart) => cart.totalItems,
+    orElse: () => 0,
+  );
+});
+
 class CartController extends Notifier<AsyncValue<void>> {
   @override
   AsyncValue<void> build() => const AsyncData(null);
 
-  Future<void> addToCart(int productId, int quantity) async {
+  Future<void> addToCart(String productId, int quantity) async {
     state = const AsyncLoading();
     try {
       await ref.read(addToCartUseCaseProvider).call(
@@ -65,11 +71,11 @@ class CartController extends Notifier<AsyncValue<void>> {
     }
   }
 
-  Future<void> updateCartItem(int productId, int quantity) async {
+  Future<void> updateCartItem(String itemId, int quantity) async {
     state = const AsyncLoading();
     try {
       await ref.read(updateCartItemUseCaseProvider).call(
-            productId: productId,
+            itemId: itemId,
             quantity: quantity,
           );
       ref.invalidate(cartProvider);
@@ -80,22 +86,10 @@ class CartController extends Notifier<AsyncValue<void>> {
     }
   }
 
-  Future<void> removeFromCart(int productId) async {
+  Future<void> removeFromCart(String itemId) async {
     state = const AsyncLoading();
     try {
-      await ref.read(removeFromCartUseCaseProvider).call(productId);
-      ref.invalidate(cartProvider);
-      state = const AsyncData(null);
-    } catch (error, stackTrace) {
-      state = AsyncError(error, stackTrace);
-      rethrow;
-    }
-  }
-
-  Future<void> clearCart() async {
-    state = const AsyncLoading();
-    try {
-      await ref.read(clearCartUseCaseProvider).call();
+      await ref.read(removeFromCartUseCaseProvider).call(itemId);
       ref.invalidate(cartProvider);
       state = const AsyncData(null);
     } catch (error, stackTrace) {

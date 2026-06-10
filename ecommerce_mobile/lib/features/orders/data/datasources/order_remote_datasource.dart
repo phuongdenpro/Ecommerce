@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-
 import 'package:flutter_restapi/core/errors/exception_mapper.dart';
 import 'package:flutter_restapi/core/network/api_client.dart';
+import 'package:flutter_restapi/core/network/api_response_parser.dart';
 
 import '../models/order_model.dart';
 
@@ -16,86 +16,59 @@ class OrderRemoteDataSource {
   }) async {
     try {
       final response = await _client.dio.get(
-        '/api/orders/my-orders',
-        queryParameters: {'page': page, 'pageSize': pageSize},
+        '/orders/my-orders',
+        queryParameters: {
+          'pageNumber': page,
+          'pageSize': pageSize,
+        },
       );
-
-      List<dynamic> items = [];
-      if (response.data is List) {
-        items = response.data as List<dynamic>;
-      } else if (response.data is Map<String, dynamic>) {
-        final data = response.data as Map<String, dynamic>;
-        if (data['data'] is List) {
-          items = data['data'] as List<dynamic>;
-        }
-      }
-
-      return items
-          .map((item) => OrderModel.fromJson(item as Map<String, dynamic>))
-          .toList();
+      return ApiResponseParser.parseList(
+        response.data,
+        OrderModel.fromJson,
+      );
     } on DioException catch (e) {
       throw ExceptionMapper.fromDio(e);
     }
   }
 
-  Future<OrderModel> getOrderById(int id) async {
+  Future<OrderModel> getOrderById(String id) async {
     try {
-      final response = await _client.dio.get('/api/orders/$id');
-      final orderData = response.data is Map<String, dynamic>
-          ? (response.data as Map<String, dynamic>)['data'] ?? response.data
-          : response.data;
-      return OrderModel.fromJson(orderData as Map<String, dynamic>);
+      final response = await _client.dio.get('/orders/my-orders/$id');
+      return OrderModel.fromJson(
+        ApiResponseParser.extractMap(response.data),
+      );
     } on DioException catch (e) {
       throw ExceptionMapper.fromDio(e);
     }
   }
 
   Future<OrderModel> createOrder({
-    required List<({int productId, int quantity})> items,
-    required String recipientName,
-    required String recipientPhone,
     required String shippingAddress,
-    required String paymentMethod,
-    String? notes,
+    String? note,
+    double shippingFee = 0,
+    String? couponCode,
   }) async {
     try {
       final response = await _client.dio.post(
-        '/api/orders',
+        '/orders',
         data: {
-          'items': items
-              .map((item) => {'productId': item.productId, 'quantity': item.quantity})
-              .toList(),
-          'recipientName': recipientName,
-          'recipientPhone': recipientPhone,
           'shippingAddress': shippingAddress,
-          'paymentMethod': paymentMethod,
-          'notes': notes,
+          'note': note,
+          'shippingFee': shippingFee,
+          if (couponCode != null) 'couponCode': couponCode,
         },
       );
-
-      final orderData = response.data is Map<String, dynamic>
-          ? (response.data as Map<String, dynamic>)['data'] ?? response.data
-          : response.data;
-      return OrderModel.fromJson(orderData as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw ExceptionMapper.fromDio(e);
-    }
-  }
-
-  Future<void> cancelOrder(int orderId) async {
-    try {
-      await _client.dio.post('/api/orders/$orderId/cancel');
-    } on DioException catch (e) {
-      throw ExceptionMapper.fromDio(e);
-    }
-  }
-
-  Future<void> updateOrderStatus(int orderId, String status) async {
-    try {
-      await _client.dio.put(
-        '/api/orders/$orderId/status',
-        data: {'status': status},
+      return OrderModel.fromJson(
+        ApiResponseParser.extractMap(response.data),
       );
+    } on DioException catch (e) {
+      throw ExceptionMapper.fromDio(e);
+    }
+  }
+
+  Future<void> cancelOrder(String orderId) async {
+    try {
+      await _client.dio.post('/orders/$orderId/cancel');
     } on DioException catch (e) {
       throw ExceptionMapper.fromDio(e);
     }

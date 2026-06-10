@@ -1,35 +1,36 @@
+import 'package:flutter_restapi/core/network/api_response_parser.dart';
+
 class CartItemModel {
-  final int productId;
+  final String id;
+  final String productId;
   final String productName;
-  final int price;
+  final double unitPrice;
   final int quantity;
+  final int stockQuantity;
+  final bool isInStock;
   final String? imageUrl;
 
   const CartItemModel({
+    required this.id,
     required this.productId,
     required this.productName,
-    required this.price,
+    required this.unitPrice,
     required this.quantity,
+    required this.stockQuantity,
+    required this.isInStock,
     this.imageUrl,
   });
 
   factory CartItemModel.fromJson(Map<String, dynamic> json) {
     return CartItemModel(
-      productId: (json['productId'] as num?)?.toInt() ?? 0,
+      id: ApiResponseParser.parseId(json['id']),
+      productId: ApiResponseParser.parseId(json['productId']),
       productName: json['productName']?.toString() ?? '',
-      price: (json['price'] as num?)?.toInt() ?? 0,
-      quantity: (json['quantity'] as num?)?.toInt() ?? 0,
-      imageUrl: json['imageUrl'] as String?,
+      unitPrice: ApiResponseParser.parseMoney(json['unitPrice'] ?? json['price']),
+      quantity: ApiResponseParser.parseInt(json['quantity']),
+      stockQuantity: ApiResponseParser.parseInt(json['stockQuantity']),
+      isInStock: json['isInStock'] as bool? ?? true,
+      imageUrl: json['productImageUrl'] as String? ?? json['imageUrl'] as String?,
     );
   }
-
-  Map<String, dynamic> toJson() => {
-        'productId': productId,
-        'productName': productName,
-        'price': price,
-        'quantity': quantity,
-        'imageUrl': imageUrl,
-      };
-
-  int get totalPrice => price * quantity;
 }

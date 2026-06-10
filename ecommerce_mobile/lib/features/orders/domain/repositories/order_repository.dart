@@ -1,4 +1,4 @@
-import '../../domain/entities/order_entity.dart';
+import '../entities/order_entity.dart';
 
 abstract class OrderRepository {
   Future<List<OrderEntity>> getOrders({
@@ -6,18 +6,14 @@ abstract class OrderRepository {
     required int pageSize,
   });
 
-  Future<OrderEntity> getOrderById(int id);
+  Future<OrderEntity> getOrderById(String id);
 
   Future<OrderEntity> createOrder({
-    required List<({int productId, int quantity})> items,
-    required String recipientName,
-    required String recipientPhone,
     required String shippingAddress,
-    required String paymentMethod,
-    String? notes,
+    String? note,
+    double shippingFee,
+    String? couponCode,
   });
 
-  Future<void> cancelOrder(int orderId);
-
-  Future<void> updateOrderStatus(int orderId, String status);
+  Future<void> cancelOrder(String orderId);
 }

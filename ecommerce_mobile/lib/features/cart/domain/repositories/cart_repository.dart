@@ -3,17 +3,17 @@ import '../entities/cart_entity.dart';
 abstract class CartRepository {
   Future<CartEntity> getCart();
 
-  Future<void> addToCart({
-    required int productId,
+  Future<CartEntity> addToCart({
+    required String productId,
     required int quantity,
   });
 
-  Future<void> updateCartItem({
-    required int productId,
+  Future<CartEntity> updateCartItem({
+    required String itemId,
     required int quantity,
   });
 
-  Future<void> removeFromCart(int productId);
+  Future<CartEntity> removeFromCart(String itemId);
 
   Future<void> clearCart();
 }

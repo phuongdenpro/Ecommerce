@@ -17,7 +17,7 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   @override
-  Future<ProductEntity> getProductById(int id) async {
+  Future<ProductEntity> getProductById(String id) async {
     final model = await _remote.getProductById(id);
     return model.toEntity();
   }
@@ -38,7 +38,7 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Future<ProductEntity> updateProduct({
-    required int id,
+    required String id,
     required String name,
     required String description,
     required int price,
@@ -53,11 +53,11 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   @override
-  Future<void> deleteProduct(int id) => _remote.deleteProduct(id);
+  Future<void> deleteProduct(String id) => _remote.deleteProduct(id);
 
   @override
   Future<void> uploadProductImage({
-    required int productId,
+    required String productId,
     required String imagePath,
   }) {
     return _remote.uploadProductImage(productId: productId, imagePath: imagePath);

@@ -7,19 +7,15 @@ class CreateOrderUseCase {
   CreateOrderUseCase(this._repository);
 
   Future<OrderEntity> call({
-    required List<({int productId, int quantity})> items,
-    required String recipientName,
-    required String recipientPhone,
     required String shippingAddress,
-    required String paymentMethod,
-    String? notes,
+    String? note,
+    double shippingFee = 0,
+    String? couponCode,
   }) =>
       _repository.createOrder(
-        items: items,
-        recipientName: recipientName,
-        recipientPhone: recipientPhone,
         shippingAddress: shippingAddress,
-        paymentMethod: paymentMethod,
-        notes: notes,
+        note: note,
+        shippingFee: shippingFee,
+        couponCode: couponCode,
       );
 }

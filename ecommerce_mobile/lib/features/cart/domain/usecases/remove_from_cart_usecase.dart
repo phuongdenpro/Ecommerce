@@ -1,3 +1,4 @@
+import '../../domain/entities/cart_entity.dart';
 import '../../domain/repositories/cart_repository.dart';
 
 class RemoveFromCartUseCase {
@@ -5,5 +6,5 @@ class RemoveFromCartUseCase {
 
   RemoveFromCartUseCase(this._repository);
 
-  Future<void> call(int productId) => _repository.removeFromCart(productId);
+  Future<CartEntity> call(String itemId) => _repository.removeFromCart(itemId);
 }

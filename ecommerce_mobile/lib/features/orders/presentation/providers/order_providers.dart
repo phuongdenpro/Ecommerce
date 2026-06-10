@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:flutter_restapi/core/constants/app_constants.dart';
 import 'package:flutter_restapi/core/providers/core_providers.dart';
+import 'package:flutter_restapi/features/cart/presentation/providers/cart_providers.dart';
 
 import '../../data/datasources/order_remote_datasource.dart';
 import '../../data/repositories/order_repository.dart';
@@ -36,7 +37,6 @@ final cancelOrderUseCaseProvider = Provider<CancelOrderUseCase>((ref) {
   return CancelOrderUseCase(ref.watch(orderRepositoryProvider));
 });
 
-// Order List State
 class OrderListState {
   final List<OrderEntity> items;
   final int nextPage;
@@ -120,7 +120,7 @@ class OrderListNotifier extends AsyncNotifier<OrderListState> {
     }
   }
 
-  Future<void> cancelOrder(int orderId) async {
+  Future<void> cancelOrder(String orderId) async {
     try {
       await _cancelOrder.call(orderId);
       await refresh();
@@ -136,36 +136,31 @@ final orderListProvider =
   OrderListNotifier.new,
 );
 
-// Order Detail Provider
 final orderDetailProvider = FutureProvider.family.autoDispose(
-  (ref, int orderId) => ref.watch(getOrderDetailUseCaseProvider).call(orderId),
+  (ref, String orderId) => ref.watch(getOrderDetailUseCaseProvider).call(orderId),
 );
 
-// Create Order Controller
 class CreateOrderController extends Notifier<AsyncValue<OrderEntity?>> {
   @override
   AsyncValue<OrderEntity?> build() => const AsyncData(null);
 
   Future<OrderEntity?> createOrder({
-    required List<({int productId, int quantity})> items,
-    required String recipientName,
-    required String recipientPhone,
     required String shippingAddress,
-    required String paymentMethod,
-    String? notes,
+    String? note,
+    double shippingFee = 0,
+    String? couponCode,
   }) async {
     state = const AsyncLoading();
     try {
       final order = await ref.read(createOrderUseCaseProvider).call(
-            items: items,
-            recipientName: recipientName,
-            recipientPhone: recipientPhone,
             shippingAddress: shippingAddress,
-            paymentMethod: paymentMethod,
-            notes: notes,
+            note: note,
+            shippingFee: shippingFee,
+            couponCode: couponCode,
           );
-      
+
       ref.invalidate(orderListProvider);
+      ref.invalidate(cartProvider);
       state = AsyncData(order);
       return order;
     } catch (error, stackTrace) {

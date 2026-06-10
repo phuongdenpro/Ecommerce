@@ -15,7 +15,7 @@ class OrdersPage extends ConsumerWidget {
   const OrdersPage({super.key});
 
   Color _statusColor(OrderStatus status) => switch (status) {
-        OrderStatus.completed => AppColors.success,
+        OrderStatus.delivered => AppColors.success,
         OrderStatus.cancelled => AppColors.error,
         OrderStatus.shipping => AppColors.accent,
         _ => AppColors.primary,
@@ -92,9 +92,7 @@ class OrdersPage extends ConsumerWidget {
                             return Card(
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(16),
-                                onTap: () => context.go(
-                                  RoutePaths.orderDetail(order.id),
-                                ),
+                                onTap: () => context.push(RoutePaths.orderDetail(order.id)),
                                 child: Padding(
                                   padding: const EdgeInsets.all(16),
                                   child: Column(
@@ -152,7 +150,7 @@ class OrdersPage extends ConsumerWidget {
                                             style: Theme.of(context).textTheme.bodyMedium,
                                           ),
                                           Text(
-                                            formatCurrency(order.totalAmount),
+                                            formatCurrency(order.finalAmount),
                                             style: const TextStyle(
                                               fontWeight: FontWeight.w800,
                                               color: AppColors.primary,

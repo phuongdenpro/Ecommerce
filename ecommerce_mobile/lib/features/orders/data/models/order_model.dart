@@ -1,35 +1,39 @@
+import 'package:flutter_restapi/core/network/api_response_parser.dart';
+
 import 'order_item_model.dart';
 import '../../domain/entities/order_entity.dart';
 
 class OrderModel {
-  final int id;
+  final String id;
   final String orderCode;
-  final int totalAmount;
+  final double totalAmount;
+  final double shippingFee;
+  final double discountAmount;
+  final double finalAmount;
   final String status;
   final String? paymentMethod;
   final String? paymentStatus;
   final String shippingAddress;
-  final String recipientName;
-  final String recipientPhone;
-  final String? notes;
+  final String? note;
   final DateTime createdAt;
-  final DateTime? updatedAt;
   final List<OrderItemModel> items;
+  final int? itemCount;
 
   const OrderModel({
     required this.id,
     required this.orderCode,
     required this.totalAmount,
+    required this.shippingFee,
+    required this.discountAmount,
+    required this.finalAmount,
     required this.status,
     this.paymentMethod,
     this.paymentStatus,
     required this.shippingAddress,
-    required this.recipientName,
-    required this.recipientPhone,
-    this.notes,
+    this.note,
     required this.createdAt,
-    this.updatedAt,
     required this.items,
+    this.itemCount,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -39,23 +43,26 @@ class OrderModel {
         [];
 
     return OrderModel(
-      id: (json['id'] as num?)?.toInt() ?? 0,
+      id: ApiResponseParser.parseId(json['id']),
       orderCode: json['orderCode']?.toString() ?? '',
-      totalAmount: (json['totalAmount'] as num?)?.toInt() ?? 0,
-      status: json['status']?.toString() ?? 'pending',
+      totalAmount: ApiResponseParser.parseMoney(json['totalAmount']),
+      shippingFee: ApiResponseParser.parseMoney(json['shippingFee']),
+      discountAmount: ApiResponseParser.parseMoney(json['discountAmount']),
+      finalAmount: ApiResponseParser.parseMoney(
+        json['finalAmount'] ?? json['totalAmount'],
+      ),
+      status: json['status']?.toString() ?? 'Pending',
       paymentMethod: json['paymentMethod'] as String?,
       paymentStatus: json['paymentStatus'] as String?,
       shippingAddress: json['shippingAddress']?.toString() ?? '',
-      recipientName: json['recipientName']?.toString() ?? '',
-      recipientPhone: json['recipientPhone']?.toString() ?? '',
-      notes: json['notes'] as String?,
+      note: json['note'] as String? ?? json['notes'] as String?,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'].toString())
           : DateTime.now(),
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.parse(json['updatedAt'].toString())
-          : null,
       items: itemsList,
+      itemCount: json['itemCount'] != null
+          ? ApiResponseParser.parseInt(json['itemCount'])
+          : null,
     );
   }
 
@@ -63,21 +70,23 @@ class OrderModel {
         id: id,
         orderCode: orderCode,
         totalAmount: totalAmount,
+        shippingFee: shippingFee,
+        discountAmount: discountAmount,
+        finalAmount: finalAmount,
         status: _parseStatus(status),
         paymentMethod: paymentMethod,
         paymentStatus: paymentStatus,
         shippingAddress: shippingAddress,
-        recipientName: recipientName,
-        recipientPhone: recipientPhone,
-        notes: notes,
+        note: note,
         createdAt: createdAt,
         items: items
             .map((item) => (
                   productId: item.productId,
                   productName: item.productName,
-                  price: item.price,
+                  unitPrice: item.unitPrice,
                   quantity: item.quantity,
                   imageUrl: item.imageUrl,
+                  subTotal: item.subTotal,
                 ))
             .toList(),
       );
@@ -86,8 +95,10 @@ class OrderModel {
     return switch (status.toLowerCase()) {
       'pending' => OrderStatus.pending,
       'confirmed' => OrderStatus.confirmed,
+      'processing' => OrderStatus.processing,
       'shipping' => OrderStatus.shipping,
-      'completed' => OrderStatus.completed,
+      'delivered' => OrderStatus.delivered,
+      'completed' => OrderStatus.delivered,
       'cancelled' => OrderStatus.cancelled,
       _ => OrderStatus.pending,
     };

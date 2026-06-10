@@ -7,14 +7,13 @@ import 'package:flutter_restapi/app/router/route_paths.dart';
 import 'package:flutter_restapi/core/theme/app_colors.dart';
 import 'package:flutter_restapi/core/utils/formatters.dart';
 import 'package:flutter_restapi/features/cart/presentation/providers/cart_providers.dart';
-import 'package:flutter_restapi/features/cart/services/cart_service.dart';
 import 'package:flutter_restapi/features/product/presentation/providers/product_providers.dart';
 import 'package:flutter_restapi/core/widgets/custom_button.dart';
 import 'package:flutter_restapi/core/widgets/error_widget.dart';
 import 'package:flutter_restapi/core/widgets/loading_widget.dart';
 
 class ProductDetailPage extends ConsumerStatefulWidget {
-  final int productId;
+  final String productId;
 
   const ProductDetailPage({super.key, required this.productId});
 
@@ -24,6 +23,7 @@ class ProductDetailPage extends ConsumerStatefulWidget {
 
 class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
   int _selectedQuantity = 1;
+  bool _isAdding = false;
 
   void _goBack(BuildContext context) {
     if (context.canPop()) {
@@ -33,14 +33,14 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     }
   }
 
-  Future<void> _addToCart(BuildContext context, WidgetRef ref) async {
+  Future<void> _addToCart(BuildContext context) async {
+    setState(() => _isAdding = true);
     try {
-      // Try using API-based cart first
       await ref.read(cartControllerProvider.notifier).addToCart(
             widget.productId,
             _selectedQuantity,
           );
-      
+
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -49,18 +49,15 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
         ),
       );
     } catch (e) {
-      // Fallback to local cart service if API fails
-      final product = ref.read(productDetailProvider(widget.productId)).value;
-      if (product != null) {
-        CartService().addToCart(product, _selectedQuantity);
-        if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Đã thêm $_selectedQuantity sản phẩm vào giỏ'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi: ${e.toString()}'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isAdding = false);
     }
   }
 
@@ -93,7 +90,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
         ),
       ),
       data: (product) {
-        final inStock = product.quantity > 0;
+        final inStock = product.inStock;
 
         return Scaffold(
           appBar: AppBar(
@@ -107,7 +104,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                 icon: const Icon(Icons.ios_share_rounded),
                 onPressed: () async {
                   final text =
-                      '${product.name}\nGiá: ${formatCurrency(product.price)}\n${product.imageUrl ?? ''}';
+                      '${product.name}\nGiá: ${formatCurrency(product.displayPrice)}\n${product.imageUrl ?? ''}';
                   await Clipboard.setData(ClipboardData(text: text));
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -164,7 +161,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                'Còn ${product.quantity} sản phẩm',
+                                'Còn ${product.stockQuantity} sản phẩm',
                                 style: const TextStyle(
                                   color: AppColors.success,
                                   fontWeight: FontWeight.w600,
@@ -177,20 +174,35 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                       const SizedBox(height: 12),
                       Text(product.name, style: Theme.of(context).textTheme.headlineSmall),
                       const SizedBox(height: 8),
-                      Text(
-                        formatCurrency(product.price),
-                        style: const TextStyle(
-                          fontSize: 26,
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.5,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            formatCurrency(product.displayPrice),
+                            style: const TextStyle(
+                              fontSize: 26,
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          if (product.hasDiscount) ...[
+                            const SizedBox(width: 10),
+                            Text(
+                              formatCurrency(product.price),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: AppColors.textSecondary,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: 20),
                       Text('Mô tả', style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 8),
                       Text(
-                        product.description,
+                        product.description.isNotEmpty ? product.description : 'Chưa có mô tả',
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.6),
                       ),
                       const SizedBox(height: 24),
@@ -198,7 +210,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                       const SizedBox(height: 12),
                       _QuantitySelector(
                         quantity: _selectedQuantity,
-                        max: product.quantity,
+                        max: product.stockQuantity,
                         onChanged: (q) => setState(() => _selectedQuantity = q),
                       ),
                     ],
@@ -221,9 +233,13 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                 child: SafeArea(
                   top: false,
                   child: CustomButton(
-                    label: inStock ? 'Thêm vào giỏ hàng' : 'Sản phẩm đã hết',
-                    enabled: inStock,
-                    onPressed: () => _addToCart(context, ref),
+                    label: _isAdding
+                        ? 'Đang thêm...'
+                        : inStock
+                            ? 'Thêm vào giỏ hàng'
+                            : 'Sản phẩm đã hết',
+                    enabled: inStock && !_isAdding,
+                    onPressed: () => _addToCart(context),
                     color: inStock ? AppColors.primary : AppColors.textSecondary,
                   ),
                 ),

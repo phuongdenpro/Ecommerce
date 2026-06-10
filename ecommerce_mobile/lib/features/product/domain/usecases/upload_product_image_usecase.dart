@@ -1,7 +1,7 @@
 import '../repositories/product_repository.dart';
 
 class UploadProductImageParams {
-  final int productId;
+  final String productId;
   final String imagePath;
 
   const UploadProductImageParams({required this.productId, required this.imagePath});

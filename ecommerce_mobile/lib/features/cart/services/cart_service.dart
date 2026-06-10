@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/cart_item.dart';
 import 'package:flutter_restapi/features/product/domain/entities/product_entity.dart';
 
+/// Legacy in-memory cart — prefer API-backed [cartProvider] for shopping flow.
 class CartService {
   CartService._internal();
 
@@ -10,7 +11,7 @@ class CartService {
 
   factory CartService() => _instance;
 
-  final Map<int, CartItem> _items = {};
+  final Map<String, CartItem> _items = {};
   final ValueNotifier<int> itemCountNotifier = ValueNotifier<int>(0);
 
   List<CartItem> get items => _items.values.toList();
@@ -19,7 +20,7 @@ class CartService {
 
   void addToCart(ProductEntity product, int quantity) {
     if (quantity <= 0) return;
-    final available = product.quantity;
+    final available = product.stockQuantity;
     final addedQuantity = quantity.clamp(1, available);
     final existing = _items[product.id];
     if (existing != null) {
@@ -30,7 +31,7 @@ class CartService {
     itemCountNotifier.value = _items.values.fold(0, (sum, item) => sum + item.quantity);
   }
 
-  void removeFromCart(int productId) {
+  void removeFromCart(String productId) {
     _items.remove(productId);
     itemCountNotifier.value = _items.values.fold(0, (sum, item) => sum + item.quantity);
   }

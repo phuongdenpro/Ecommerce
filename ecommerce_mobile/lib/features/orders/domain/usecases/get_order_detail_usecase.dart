@@ -6,5 +6,5 @@ class GetOrderDetailUseCase {
 
   GetOrderDetailUseCase(this._repository);
 
-  Future<OrderEntity> call(int id) => _repository.getOrderById(id);
+  Future<OrderEntity> call(String id) => _repository.getOrderById(id);
 }

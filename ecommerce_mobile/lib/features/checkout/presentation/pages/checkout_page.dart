@@ -3,16 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:flutter_restapi/app/router/route_paths.dart';
+import 'package:flutter_restapi/core/constants/payment_constants.dart';
 import 'package:flutter_restapi/core/theme/app_colors.dart';
 import 'package:flutter_restapi/core/utils/formatters.dart';
 import 'package:flutter_restapi/core/widgets/custom_button.dart';
 import 'package:flutter_restapi/core/widgets/custom_text_field.dart';
 import 'package:flutter_restapi/core/widgets/loading_widget.dart';
+import 'package:flutter_restapi/features/cart/domain/entities/cart_entity.dart';
 import 'package:flutter_restapi/features/cart/presentation/providers/cart_providers.dart';
-import 'package:flutter_restapi/features/cart/services/cart_service.dart';
+import 'package:flutter_restapi/features/checkout/checkout_args.dart';
 import 'package:flutter_restapi/features/orders/presentation/providers/order_providers.dart';
-
-enum PaymentMethod { cod, bank_transfer }
+import 'package:flutter_restapi/features/payment/domain/entities/payment_entity.dart';
+import 'package:flutter_restapi/features/payment/presentation/providers/payment_providers.dart';
 
 class CheckoutPage extends ConsumerStatefulWidget {
   const CheckoutPage({super.key});
@@ -27,7 +29,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
   late TextEditingController _phoneController;
   late TextEditingController _addressController;
   late TextEditingController _notesController;
-  PaymentMethod _selectedPaymentMethod = PaymentMethod.cod;
+  PaymentMethodType _selectedPaymentMethod = PaymentMethodType.cod;
   bool _isSubmitting = false;
 
   @override
@@ -68,61 +70,72 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
     return null;
   }
 
+  String _buildShippingAddress() {
+    final name = _nameController.text.trim();
+    final phone = _phoneController.text.trim();
+    final address = _addressController.text.trim();
+    return '$name, $phone, $address';
+  }
+
   Future<void> _submitOrder() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSubmitting = true);
 
     try {
-      // Get cart items from local cart service
-      final cartService = CartService();
-      final cartItems = cartService.items;
-
-      if (cartItems.isEmpty) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Giỏ hàng trống. Vui lòng thêm sản phẩm trước'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-        setState(() => _isSubmitting = false);
+      final cart = await ref.read(cartProvider.future);
+      if (cart.items.isEmpty) {
+        _showError('Giỏ hàng trống. Vui lòng thêm sản phẩm trước');
         return;
       }
 
-      // Prepare order items
-      final orderItems = cartItems
-          .map((item) => (productId: item.product.id, quantity: item.quantity))
-          .toList();
-
-      // Create order
-      await ref.read(createOrderControllerProvider.notifier).createOrder(
-            items: orderItems,
-            recipientName: _nameController.text.trim(),
-            recipientPhone: _phoneController.text.trim(),
-            shippingAddress: _addressController.text.trim(),
-            paymentMethod: _selectedPaymentMethod == PaymentMethod.cod ? 'COD' : 'BankTransfer',
-            notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+      final order = await ref.read(createOrderControllerProvider.notifier).createOrder(
+            shippingAddress: _buildShippingAddress(),
+            note: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+            shippingFee: PaymentConstants.defaultShippingFee,
           );
 
-      // Clear cart after successful order
-      cartService.clearCart();
+      if (order == null) return;
+
+      await ref.read(paymentControllerProvider.notifier).processPayment(
+            orderId: order.id,
+            method: _selectedPaymentMethod,
+          );
 
       if (!mounted) return;
 
-      // Navigate to success page
-      context.go(RoutePaths.orderSuccess);
+      switch (_selectedPaymentMethod) {
+        case PaymentMethodType.bankTransfer:
+          context.go(
+            RoutePaths.bankTransfer,
+            extra: BankTransferArgs(
+              orderId: order.id,
+              orderCode: order.orderCode,
+              amount: order.finalAmount,
+            ),
+          );
+        case PaymentMethodType.cod:
+        case PaymentMethodType.onlinePayment:
+          context.go(
+            RoutePaths.orderSuccess,
+            extra: OrderSuccessArgs(
+              orderId: order.id,
+              orderCode: order.orderCode,
+            ),
+          );
+      }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Lỗi: ${e.toString()}'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      _showError(e.toString());
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: AppColors.error),
+    );
   }
 
   @override
@@ -148,10 +161,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
               const SizedBox(height: 16),
               const Text('Không thể tải giỏ hàng'),
               const SizedBox(height: 16),
-              CustomButton(
-                label: 'Quay lại',
-                onPressed: () => context.pop(),
-              ),
+              CustomButton(label: 'Quay lại', onPressed: () => context.pop()),
             ],
           ),
         ),
@@ -200,7 +210,9 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
     );
   }
 
-  Widget _buildOrderSummary(cart) {
+  Widget _buildOrderSummary(CartEntity cart) {
+    final totalWithShipping = cart.subTotal + PaymentConstants.defaultShippingFee;
+
     return Container(
       margin: const EdgeInsets.all(20),
       padding: const EdgeInsets.all(16),
@@ -214,7 +226,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
         children: [
           Text('Thông tin đơn hàng', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 12),
-          ...cart.items.map<Widget>((item) {
+          ...cart.items.map((item) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Row(
@@ -229,18 +241,26 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                       ],
                     ),
                   ),
-                  Text(formatCurrency(item.totalPrice), style: Theme.of(context).textTheme.titleSmall),
+                  Text(formatCurrency(item.subTotal), style: Theme.of(context).textTheme.titleSmall),
                 ],
               ),
             );
-          }).toList(),
+          }),
           const Divider(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Phí vận chuyển', style: Theme.of(context).textTheme.bodyMedium),
+              Text(formatCurrency(PaymentConstants.defaultShippingFee)),
+            ],
+          ),
+          const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Tổng cộng', style: Theme.of(context).textTheme.titleMedium),
               Text(
-                formatCurrency(cart.totalAmount),
+                formatCurrency(totalWithShipping),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,
@@ -321,31 +341,35 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
           Text('Phương thức thanh toán', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 12),
           _buildPaymentOption(
-            PaymentMethod.cod,
-            'Thanh toán khi nhận hàng (COD)',
+            PaymentMethodType.cod,
+            PaymentMethodType.cod.label,
             'Bạn sẽ thanh toán tiền khi nhận được đơn hàng',
           ),
           const SizedBox(height: 12),
           _buildPaymentOption(
-            PaymentMethod.bank_transfer,
-            'Chuyển khoản ngân hàng',
+            PaymentMethodType.bankTransfer,
+            PaymentMethodType.bankTransfer.label,
             'Chuyển khoản trước, chúng tôi sẽ xác nhận và giao hàng',
+          ),
+          const SizedBox(height: 12),
+          _buildPaymentOption(
+            PaymentMethodType.onlinePayment,
+            PaymentMethodType.onlinePayment.label,
+            'Thanh toán online (mock gateway — tự động xác nhận)',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPaymentOption(PaymentMethod method, String title, String subtitle) {
+  Widget _buildPaymentOption(PaymentMethodType method, String title, String subtitle) {
     return InkWell(
       onTap: () => setState(() => _selectedPaymentMethod = method),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           border: Border.all(
-            color: _selectedPaymentMethod == method
-                ? AppColors.primary
-                : AppColors.border,
+            color: _selectedPaymentMethod == method ? AppColors.primary : AppColors.border,
             width: _selectedPaymentMethod == method ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(8),
@@ -355,7 +379,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
         ),
         child: Row(
           children: [
-            Radio<PaymentMethod>(
+            Radio<PaymentMethodType>(
               value: method,
               groupValue: _selectedPaymentMethod,
               onChanged: (value) {

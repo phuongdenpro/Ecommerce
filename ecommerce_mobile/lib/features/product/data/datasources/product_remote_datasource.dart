@@ -1,9 +1,10 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-
 import 'package:flutter_restapi/core/errors/exception_mapper.dart';
 import 'package:flutter_restapi/core/network/api_client.dart';
+import 'package:flutter_restapi/core/network/api_response_parser.dart';
+
 import '../models/product_model.dart';
 
 class ProductRemoteDataSource {
@@ -18,29 +19,26 @@ class ProductRemoteDataSource {
     try {
       final response = await _client.dio.get(
         '/products',
-        queryParameters: {'page': page, 'pageSize': pageSize},
+        queryParameters: {
+          'pageNumber': page,
+          'pageSize': pageSize,
+        },
       );
-      final responseData = response.data;
-
-      List<dynamic> items = [];
-      if (responseData is List) {
-        items = responseData;
-      } else if (responseData is Map<String, dynamic> && responseData['data'] is List) {
-        items = responseData['data'] as List<dynamic>;
-      }
-
-      return items
-          .map((item) => ProductModel.fromJson(item as Map<String, dynamic>))
-          .toList();
+      return ApiResponseParser.parseList(
+        response.data,
+        ProductModel.fromJson,
+      );
     } on DioException catch (e) {
       throw ExceptionMapper.fromDio(e);
     }
   }
 
-  Future<ProductModel> getProductById(int id) async {
+  Future<ProductModel> getProductById(String id) async {
     try {
-      final response = await _client.dio.get('/admin/products/$id');
-      return ProductModel.fromJson(response.data as Map<String, dynamic>);
+      final response = await _client.dio.get('/products/$id');
+      return ProductModel.fromJson(
+        ApiResponseParser.extractMap(response.data),
+      );
     } on DioException catch (e) {
       throw ExceptionMapper.fromDio(e);
     }
@@ -61,14 +59,16 @@ class ProductRemoteDataSource {
           'quantity': 1,
         },
       );
-      return ProductModel.fromJson(response.data as Map<String, dynamic>);
+      return ProductModel.fromJson(
+        ApiResponseParser.extractMap(response.data),
+      );
     } on DioException catch (e) {
       throw ExceptionMapper.fromDio(e);
     }
   }
 
   Future<ProductModel> updateProduct({
-    required int id,
+    required String id,
     required String name,
     required String description,
     required int price,
@@ -83,13 +83,15 @@ class ProductRemoteDataSource {
           'quantity': 1,
         },
       );
-      return ProductModel.fromJson(response.data as Map<String, dynamic>);
+      return ProductModel.fromJson(
+        ApiResponseParser.extractMap(response.data),
+      );
     } on DioException catch (e) {
       throw ExceptionMapper.fromDio(e);
     }
   }
 
-  Future<void> deleteProduct(int id) async {
+  Future<void> deleteProduct(String id) async {
     try {
       await _client.dio.delete('/products/$id');
     } on DioException catch (e) {
@@ -98,7 +100,7 @@ class ProductRemoteDataSource {
   }
 
   Future<void> uploadProductImage({
-    required int productId,
+    required String productId,
     required String imagePath,
   }) async {
     try {

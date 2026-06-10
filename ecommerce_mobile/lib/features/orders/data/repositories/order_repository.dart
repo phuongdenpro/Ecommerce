@@ -1,8 +1,8 @@
 import '../../domain/entities/order_entity.dart';
-import '../../domain/repositories/order_repository.dart';
+import '../../domain/repositories/order_repository.dart' as repo_interface;
 import '../datasources/order_remote_datasource.dart';
 
-class OrderRepositoryImpl implements OrderRepository {
+class OrderRepositoryImpl implements repo_interface.OrderRepository {
   final OrderRemoteDataSource _remote;
 
   OrderRepositoryImpl(this._remote);
@@ -17,35 +17,27 @@ class OrderRepositoryImpl implements OrderRepository {
   }
 
   @override
-  Future<OrderEntity> getOrderById(int id) async {
+  Future<OrderEntity> getOrderById(String id) async {
     final model = await _remote.getOrderById(id);
     return model.toEntity();
   }
 
   @override
   Future<OrderEntity> createOrder({
-    required List<({int productId, int quantity})> items,
-    required String recipientName,
-    required String recipientPhone,
     required String shippingAddress,
-    required String paymentMethod,
-    String? notes,
+    String? note,
+    double shippingFee = 0,
+    String? couponCode,
   }) async {
     final model = await _remote.createOrder(
-      items: items,
-      recipientName: recipientName,
-      recipientPhone: recipientPhone,
       shippingAddress: shippingAddress,
-      paymentMethod: paymentMethod,
-      notes: notes,
+      note: note,
+      shippingFee: shippingFee,
+      couponCode: couponCode,
     );
     return model.toEntity();
   }
 
   @override
-  Future<void> cancelOrder(int orderId) => _remote.cancelOrder(orderId);
-
-  @override
-  Future<void> updateOrderStatus(int orderId, String status) =>
-      _remote.updateOrderStatus(orderId, status);
+  Future<void> cancelOrder(String orderId) => _remote.cancelOrder(orderId);
 }

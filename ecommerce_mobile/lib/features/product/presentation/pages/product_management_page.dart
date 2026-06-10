@@ -36,7 +36,7 @@ class _ProductManagementPageState extends ConsumerState<ProductManagementPage> {
     }
   }
 
-  Future<void> _deleteProduct(int id) async {
+  Future<void> _deleteProduct(String id) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(

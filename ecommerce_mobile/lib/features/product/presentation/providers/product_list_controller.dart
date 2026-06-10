@@ -104,7 +104,7 @@ class ProductFormController extends Notifier<AsyncValue<void>> {
   AsyncValue<void> build() => const AsyncData(null);
 
   Future<String?> submit({
-    int? productId,
+    String? productId,
     required String name,
     required String description,
     required int price,
@@ -189,7 +189,7 @@ class ProductManagementController extends AsyncNotifier<PaginatedProductsState> 
     }
   }
 
-  Future<String?> deleteProduct(int id) async {
+  Future<String?> deleteProduct(String id) async {
     try {
       await ref.read(deleteProductUseCaseProvider).call(id);
       await refresh();

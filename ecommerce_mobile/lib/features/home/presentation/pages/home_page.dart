@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_restapi/app/router/route_paths.dart';
 import 'package:flutter_restapi/core/constants/app_constants.dart';
 import 'package:flutter_restapi/core/theme/app_colors.dart';
-import 'package:flutter_restapi/features/cart/services/cart_service.dart';
+import 'package:flutter_restapi/features/cart/presentation/providers/cart_providers.dart';
 import 'package:flutter_restapi/features/home/presentation/widgets/home_category_chips.dart';
 import 'package:flutter_restapi/features/home/presentation/widgets/home_promo_banner.dart';
 import 'package:flutter_restapi/features/home/presentation/widgets/home_quick_actions.dart';
@@ -24,26 +24,19 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  final CartService _cartService = CartService();
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    _cartService.itemCountNotifier.addListener(_onCartUpdated);
   }
 
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
-    _cartService.itemCountNotifier.removeListener(_onCartUpdated);
     super.dispose();
-  }
-
-  void _onCartUpdated() {
-    if (mounted) setState(() {});
   }
 
   void _onScroll() {
@@ -58,6 +51,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget build(BuildContext context) {
     final productsAsync = ref.watch(homeProductsProvider);
     final userAsync = ref.watch(currentUserProvider);
+    final cartCount = ref.watch(cartItemCountProvider);
     final crossAxisCount = MediaQuery.sizeOf(context).width > 700 ? 4 : 2;
 
     return productsAsync.when(
@@ -135,7 +129,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 SliverToBoxAdapter(
                   child: HomeQuickActions(
                     isAdmin: isAdmin,
-                    cartCount: _cartService.itemCountNotifier.value,
+                    cartCount: cartCount,
                   ),
                 ),
                 const SliverToBoxAdapter(child: SizedBox(height: 20)),

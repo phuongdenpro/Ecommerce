@@ -1,14 +1,18 @@
+import 'package:flutter_restapi/core/network/api_response_parser.dart';
+
 import 'cart_item_model.dart';
 
 class CartModel {
-  final int id;
+  final String id;
   final List<CartItemModel> items;
-  final int totalAmount;
+  final double subTotal;
+  final int totalItems;
 
   const CartModel({
     required this.id,
     required this.items,
-    required this.totalAmount,
+    required this.subTotal,
+    required this.totalItems,
   });
 
   factory CartModel.fromJson(Map<String, dynamic> json) {
@@ -18,17 +22,10 @@ class CartModel {
         [];
 
     return CartModel(
-      id: (json['id'] as num?)?.toInt() ?? 0,
+      id: ApiResponseParser.parseId(json['id']),
       items: itemsList,
-      totalAmount: (json['totalAmount'] as num?)?.toInt() ?? 0,
+      subTotal: ApiResponseParser.parseMoney(json['subTotal'] ?? json['totalAmount']),
+      totalItems: ApiResponseParser.parseInt(json['totalItems']),
     );
   }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'items': items.map((item) => item.toJson()).toList(),
-        'totalAmount': totalAmount,
-      };
-
-  int get totalItems => items.fold<int>(0, (sum, item) => sum + item.quantity);
 }

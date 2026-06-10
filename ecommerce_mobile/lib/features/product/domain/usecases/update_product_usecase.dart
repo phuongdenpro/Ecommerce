@@ -2,7 +2,7 @@ import '../entities/product_entity.dart';
 import '../repositories/product_repository.dart';
 
 class UpdateProductParams {
-  final int id;
+  final String id;
   final String name;
   final String description;
   final int price;

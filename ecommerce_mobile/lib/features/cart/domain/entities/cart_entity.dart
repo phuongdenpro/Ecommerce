@@ -1,15 +1,17 @@
 import 'cart_item_entity.dart';
 
 class CartEntity {
-  final int id;
+  final String id;
   final List<CartItemEntity> items;
-  final int totalAmount;
+  final double subTotal;
+  final int totalItems;
 
   const CartEntity({
     required this.id,
     required this.items,
-    required this.totalAmount,
+    required this.subTotal,
+    required this.totalItems,
   });
 
-  int get totalItems => items.fold<int>(0, (sum, item) => sum + item.quantity);
+  double get totalAmount => subTotal;
 }

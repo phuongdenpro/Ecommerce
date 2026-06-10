@@ -1,9 +1,8 @@
 import 'package:dio/dio.dart';
-
 import 'package:flutter_restapi/core/errors/exception_mapper.dart';
 import 'package:flutter_restapi/core/network/api_client.dart';
+import 'package:flutter_restapi/core/network/api_response_parser.dart';
 
-import '../models/cart_item_model.dart';
 import '../models/cart_model.dart';
 
 class CartRemoteDataSource {
@@ -13,63 +12,58 @@ class CartRemoteDataSource {
 
   Future<CartModel> getCart() async {
     try {
-      final response = await _client.dio.get('/api/cart');
-      final cartData = response.data is Map<String, dynamic>
-          ? (response.data as Map<String, dynamic>)['data'] ?? response.data
-          : response.data;
-      return CartModel.fromJson(cartData as Map<String, dynamic>);
+      final response = await _client.dio.get('/cart');
+      return CartModel.fromJson(
+        ApiResponseParser.extractMap(response.data),
+      );
     } on DioException catch (e) {
       throw ExceptionMapper.fromDio(e);
     }
   }
 
-  Future<CartItemModel> addToCart({
-    required int productId,
+  Future<CartModel> addToCart({
+    required String productId,
     required int quantity,
   }) async {
     try {
       final response = await _client.dio.post(
-        '/api/cart/items',
+        '/cart/items',
         data: {
           'productId': productId,
           'quantity': quantity,
         },
       );
-
-      final itemData = response.data is Map<String, dynamic>
-          ? (response.data as Map<String, dynamic>)['data'] ?? response.data
-          : response.data;
-      return CartItemModel.fromJson(itemData as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw ExceptionMapper.fromDio(e);
-    }
-  }
-
-  Future<void> updateCartItem({
-    required int productId,
-    required int quantity,
-  }) async {
-    try {
-      await _client.dio.put(
-        '/api/cart/items/$productId',
-        data: {'quantity': quantity},
+      return CartModel.fromJson(
+        ApiResponseParser.extractMap(response.data),
       );
     } on DioException catch (e) {
       throw ExceptionMapper.fromDio(e);
     }
   }
 
-  Future<void> removeFromCart(int productId) async {
+  Future<CartModel> updateCartItem({
+    required String itemId,
+    required int quantity,
+  }) async {
     try {
-      await _client.dio.delete('/api/cart/items/$productId');
+      final response = await _client.dio.put(
+        '/cart/items/$itemId',
+        data: {'quantity': quantity},
+      );
+      return CartModel.fromJson(
+        ApiResponseParser.extractMap(response.data),
+      );
     } on DioException catch (e) {
       throw ExceptionMapper.fromDio(e);
     }
   }
 
-  Future<void> clearCart() async {
+  Future<CartModel> removeFromCart(String itemId) async {
     try {
-      await _client.dio.delete('/api/cart');
+      final response = await _client.dio.delete('/cart/items/$itemId');
+      return CartModel.fromJson(
+        ApiResponseParser.extractMap(response.data),
+      );
     } on DioException catch (e) {
       throw ExceptionMapper.fromDio(e);
     }

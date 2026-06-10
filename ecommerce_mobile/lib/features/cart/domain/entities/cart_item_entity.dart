@@ -1,17 +1,25 @@
 class CartItemEntity {
-  final int productId;
+  final String id;
+  final String productId;
   final String productName;
-  final int price;
+  final double unitPrice;
   final int quantity;
+  final int stockQuantity;
+  final bool isInStock;
   final String? imageUrl;
 
   const CartItemEntity({
+    required this.id,
     required this.productId,
     required this.productName,
-    required this.price,
+    required this.unitPrice,
     required this.quantity,
+    required this.stockQuantity,
+    required this.isInStock,
     this.imageUrl,
   });
 
-  int get totalPrice => price * quantity;
+  double get subTotal => unitPrice * quantity;
+
+  double get totalPrice => subTotal;
 }

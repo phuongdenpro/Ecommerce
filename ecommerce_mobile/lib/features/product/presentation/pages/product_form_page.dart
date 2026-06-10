@@ -13,7 +13,7 @@ import 'package:flutter_restapi/core/widgets/error_widget.dart';
 import 'package:flutter_restapi/core/widgets/loading_widget.dart';
 
 class ProductFormPage extends ConsumerStatefulWidget {
-  final int? productId;
+  final String? productId;
 
   const ProductFormPage({super.key, this.productId});
 

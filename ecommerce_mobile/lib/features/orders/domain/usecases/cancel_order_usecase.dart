@@ -5,5 +5,5 @@ class CancelOrderUseCase {
 
   CancelOrderUseCase(this._repository);
 
-  Future<void> call(int orderId) => _repository.cancelOrder(orderId);
+  Future<void> call(String orderId) => _repository.cancelOrder(orderId);
 }

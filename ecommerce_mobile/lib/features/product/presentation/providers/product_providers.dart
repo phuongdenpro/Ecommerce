@@ -44,5 +44,5 @@ final uploadProductImageUseCaseProvider = Provider<UploadProductImageUseCase>((r
 });
 
 final productDetailProvider = FutureProvider.family.autoDispose(
-  (ref, int id) => ref.watch(getProductDetailUseCaseProvider).call(id),
+  (ref, String id) => ref.watch(getProductDetailUseCaseProvider).call(id),
 );
