@@ -64,7 +64,16 @@ function logoutAndRedirect() {
 }
 
 export const apiClient: AxiosInstance = axios.create({
-  headers: { "Content-Type": "application/json" },
+  transformRequest: [
+    (data, headers) => {
+      // Handle FormData specially - don't set Content-Type
+      if (data instanceof FormData) {
+        return data;
+      }
+      // For JSON data, use default transform
+      return JSON.stringify(data);
+    },
+  ],
 });
 
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
@@ -73,6 +82,32 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  if (config.data instanceof FormData) {
+    // Use .delete() method on AxiosHeaders to properly remove the header
+    if (config.headers.delete) {
+      config.headers.delete("Content-Type");
+    } else {
+      delete config.headers["Content-Type"];
+    }
+  } else {
+    // Ensure JSON requests include the correct Content-Type header
+    if (config.headers && typeof (config.headers as any).set === "function") {
+      (config.headers as any).set("Content-Type", "application/json");
+    } else if (config.headers) {
+      config.headers["Content-Type"] = "application/json";
+    }
+  }
+
+  if (config.method === "post" || config.method === "put") {
+    console.debug("API request", {
+      url: config.url,
+      method: config.method,
+      headers: JSON.stringify(config.headers),
+      dataType: config.data instanceof FormData ? "FormData" : typeof config.data,
+    });
+  }
+
   return config;
 });
 
@@ -84,6 +119,19 @@ apiClient.interceptors.response.use(
     };
 
     if (error.response?.status !== 401 || !original || original._retry) {
+      console.error(
+        "API request failed",
+        {
+          url: original?.url,
+          method: original?.method,
+          status: error.response?.status,
+          data: error.response?.data,
+          headers: JSON.stringify(error.response?.headers),
+          message: error.message,
+        },
+        "raw data:",
+        JSON.stringify(error.response?.data),
+      );
       const message =
         error.response?.data?.message || error.message || "Request failed";
       throw new ApiError(message, error.response?.status, error.response?.data?.errors);

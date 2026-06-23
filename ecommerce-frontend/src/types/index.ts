@@ -65,6 +65,7 @@ export interface Category {
   slug: string;
   description?: string;
   parentId?: string;
+  isActive?: boolean;
   status: string;
   children: Category[];
 }
@@ -74,6 +75,7 @@ export interface Brand {
   name: string;
   slug: string;
   description?: string;
+  isActive?: boolean;
   logoUrl?: string;
   status: string;
 }
@@ -173,6 +175,7 @@ export interface Coupon {
   description?: string;
   discountType: string;
   discountValue: number;
+  minOrderAmount?: number;
   startDate: string;
   endDate: string;
   usageLimit?: number;

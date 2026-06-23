@@ -30,7 +30,10 @@ export default function AdminCustomersPage() {
   const [to, setTo] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [toggleId, setToggleId] = useState<{ id: string; active: boolean } | null>(null);
+  const [toggleId, setToggleId] = useState<{
+    id: string;
+    active: boolean;
+  } | null>(null);
   const [showCreate, setShowCreate] = useState(false);
 
   const load = useCallback(async () => {
@@ -89,7 +92,11 @@ export default function AdminCustomersPage() {
       />
 
       <AdminFilterBar>
-        <AdminSearchInput value={search} onChange={setSearch} placeholder="Tên, email, SĐT..." />
+        <AdminSearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Tên, email, SĐT..."
+        />
         <Select
           className="w-40"
           value={activeFilter}
@@ -102,7 +109,12 @@ export default function AdminCustomersPage() {
           <option value="true">Hoạt động</option>
           <option value="false">Đã khóa</option>
         </Select>
-        <AdminDateRange from={from} to={to} onFromChange={setFrom} onToChange={setTo} />
+        <AdminDateRange
+          from={from}
+          to={to}
+          onFromChange={setFrom}
+          onToChange={setTo}
+        />
       </AdminFilterBar>
 
       <AdminDataTable
@@ -115,6 +127,7 @@ export default function AdminCustomersPage() {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left text-slate-500">
             <tr>
+              <th className="px-4 py-3">STT</th>
               <th className="px-4 py-3">Khách hàng</th>
               <th className="px-4 py-3">Liên hệ</th>
               <th className="px-4 py-3">Đơn</th>
@@ -125,8 +138,13 @@ export default function AdminCustomersPage() {
             </tr>
           </thead>
           <tbody>
-            {data?.items.map((c) => (
+            {data?.items.map((c, index) => (
               <tr key={c.id} className="border-t hover:bg-slate-50">
+                <td className="px-4 py-3 text-slate-500">
+                  {((data?.pageNumber ?? 1) - 1) * (data?.pageSize ?? 1) +
+                    index +
+                    1}
+                </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700">
@@ -146,7 +164,9 @@ export default function AdminCustomersPage() {
                 <td className="px-4 py-3">
                   <ActiveBadge active={c.isActive} />
                 </td>
-                <td className="px-4 py-3 text-slate-500">{formatDate(c.createdAt)}</td>
+                <td className="px-4 py-3 text-slate-500">
+                  {formatDate(c.createdAt)}
+                </td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-1">
                     <Link href={`/admin/customers/${c.id}`}>
@@ -157,7 +177,9 @@ export default function AdminCustomersPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setToggleId({ id: c.id, active: !c.isActive })}
+                      onClick={() =>
+                        setToggleId({ id: c.id, active: !c.isActive })
+                      }
                     >
                       {c.isActive ? (
                         <Lock className="h-4 w-4 text-amber-600" />
@@ -176,6 +198,7 @@ export default function AdminCustomersPage() {
             <Pagination
               pageNumber={data.pageNumber}
               totalPages={data.totalPages}
+              totalItems={data.totalItems}
               onPageChange={setPage}
             />
           </div>

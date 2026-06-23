@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:flutter_restapi/core/theme/app_colors.dart';
 import 'package:flutter_restapi/core/utils/formatters.dart';
+import 'package:flutter_restapi/app/router/route_paths.dart';
 import 'package:flutter_restapi/features/orders/domain/entities/order_entity.dart';
 import 'package:flutter_restapi/features/orders/presentation/providers/order_providers.dart';
 import 'package:flutter_restapi/features/payment/presentation/providers/payment_providers.dart';
@@ -24,8 +25,10 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage> {
   bool _isLoadingCancel = false;
 
   Future<void> _cancelOrder() async {
+    final pageContext = context;
+
     showDialog(
-      context: context,
+      context: pageContext,
       builder: (context) => AlertDialog(
         title: const Text('Hủy đơn hàng?'),
         content: const Text('Bạn có chắc muốn hủy đơn hàng này? Hành động này không thể hoàn tác.'),
@@ -38,7 +41,7 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage> {
               try {
                 await ref.read(cancelOrderUseCaseProvider).call(widget.orderId);
                 if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(pageContext).showSnackBar(
                   const SnackBar(
                     content: Text('Đơn hàng đã được hủy'),
                     backgroundColor: AppColors.success,
@@ -46,9 +49,12 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage> {
                 );
                 ref.invalidate(orderDetailProvider(widget.orderId));
                 ref.invalidate(orderListProvider);
+                if (pageContext.canPop()) {
+                  pageContext.pop();
+                }
               } catch (e) {
                 if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(pageContext).showSnackBar(
                   SnackBar(
                     content: Text('Lỗi: ${e.toString()}'),
                     backgroundColor: AppColors.error,
@@ -78,6 +84,15 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage> {
     }
   }
 
+  void _handleBackPressed() {
+    if (Navigator.of(context).canPop()) {
+      context.pop();
+      return;
+    }
+
+    context.go(RoutePaths.orders);
+  }
+
   @override
   Widget build(BuildContext context) {
     final orderAsync = ref.watch(orderDetailProvider(widget.orderId));
@@ -89,7 +104,7 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage> {
           title: const Text('Chi tiết đơn hàng'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-            onPressed: () => context.pop(),
+            onPressed: _handleBackPressed,
           ),
         ),
         body: const LoadingWidget(message: 'Đang tải chi tiết...'),
@@ -99,7 +114,7 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage> {
           title: const Text('Chi tiết đơn hàng'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-            onPressed: () => context.pop(),
+            onPressed: _handleBackPressed,
           ),
         ),
         body: AppErrorWidget(
@@ -113,11 +128,11 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage> {
 
         return Scaffold(
           backgroundColor: AppColors.surface,
-          appBar: AppBar(
+            appBar: AppBar(
             title: const Text('Chi tiết đơn hàng'),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-              onPressed: () => context.pop(),
+              onPressed: _handleBackPressed,
             ),
           ),
           body: SingleChildScrollView(

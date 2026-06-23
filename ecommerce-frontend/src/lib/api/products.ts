@@ -34,7 +34,6 @@ export const productsApi = {
     const { data } = await apiClient.post<ApiResponse<ProductDetail>>(
       "/products",
       formData,
-      { headers: { "Content-Type": "multipart/form-data" } },
     );
     return unwrapData(data);
   },
@@ -43,7 +42,6 @@ export const productsApi = {
     const { data } = await apiClient.put<ApiResponse<ProductDetail>>(
       `/products/${id}`,
       formData,
-      { headers: { "Content-Type": "multipart/form-data" } },
     );
     return unwrapData(data);
   },

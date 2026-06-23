@@ -24,13 +24,34 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "E-Commerce API v1"));
 }
 
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowNextJs", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 app.UseCors("WebAndFlutter");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-await DatabaseSeeder.SeedAsync(app.Services);
+//await DatabaseSeeder.SeedAsync(app.Services);
+try
+{
+    await DatabaseSeeder.SeedAsync(app.Services);
+}
+catch (Exception ex)
+{
+    Console.WriteLine("Database seed failed:");
+    Console.WriteLine(ex.Message);
+    Console.WriteLine(ex.ToString());
+}
+
 
 app.Run();

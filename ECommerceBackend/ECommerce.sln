@@ -1,9 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31903.59
+# Visual Studio Version 18
+VisualStudioVersion = 18.8.11904.113 insiders
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
+	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommerce.Domain", "src\ECommerce.Domain\ECommerce.Domain.csproj", "{5DCBD2E8-A589-4CB3-8FEA-ABC96887A1F6}"
 EndProject
@@ -95,5 +99,8 @@ Global
 		{0925F208-08BB-420B-B05B-2891D8CCAD2B} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{9EF13C08-2E3B-4A54-B40C-684064E641EC} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{710731BD-1445-4F1F-BE3F-513FBC4FFAC8} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C4C3EE2C-136A-4083-9683-03997D1B40B6}
 	EndGlobalSection
 EndGlobal

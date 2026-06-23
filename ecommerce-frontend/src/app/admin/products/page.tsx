@@ -134,6 +134,8 @@ export default function AdminProductsPage() {
               <tr>
                 <th className="px-4 py-3">Ảnh</th>
                 <th className="px-4 py-3">Tên</th>
+                <th className="px-4 py-3">Danh mục</th>
+                <th className="px-4 py-3">Thương hiệu</th>
                 <th className="px-4 py-3">Giá</th>
                 <th className="px-4 py-3">Kho</th>
                 <th className="px-4 py-3">Trạng thái</th>
@@ -154,6 +156,8 @@ export default function AdminProductsPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3 font-medium">{p.name}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{p.categoryName}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600">{p.brandName}</td>
                       <td className="px-4 py-3">{formatCurrency(p.price)}</td>
                       <td className={`px-4 py-3 ${p.stockQuantity <= 10 ? "font-semibold text-red-600" : ""}`}>
                         {p.stockQuantity}
@@ -189,6 +193,7 @@ export default function AdminProductsPage() {
               <Pagination
                 pageNumber={data.pageNumber}
                 totalPages={data.totalPages}
+                totalItems={data.totalItems}
                 onPageChange={setPage}
               />
             </div>

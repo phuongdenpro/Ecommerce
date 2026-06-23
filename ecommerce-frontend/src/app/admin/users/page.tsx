@@ -179,7 +179,7 @@ export default function AdminUsersPage() {
         </table>
         {data && data.totalPages > 1 && (
           <div className="border-t p-4">
-            <Pagination pageNumber={data.pageNumber} totalPages={data.totalPages} onPageChange={setPage} />
+            <Pagination pageNumber={data.pageNumber} totalPages={data.totalPages} totalItems={data.totalItems} onPageChange={setPage} />
           </div>
         )}
       </AdminDataTable>

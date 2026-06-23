@@ -90,7 +90,8 @@ class _ProductGridViewState extends State<ProductGridView> {
   }
 
   Future<void> _loadMoreProducts() async {
-    if (_isLoadingMore || !_hasMore || widget.searchQuery != null) return;
+    // Only block loading more when a non-empty search query is present.
+    if (_isLoadingMore || !_hasMore || (widget.searchQuery?.isNotEmpty ?? false)) return;
 
     setState(() => _isLoadingMore = true);
 
@@ -135,7 +136,7 @@ class _ProductGridViewState extends State<ProductGridView> {
         mainAxisSpacing: 14,
         crossAxisSpacing: 14,
       ),
-      itemCount: _products.length + (_hasMore && widget.searchQuery == null ? 1 : 0),
+      itemCount: _products.length + (_hasMore && !(widget.searchQuery?.isNotEmpty ?? false) ? 1 : 0),
       itemBuilder: (context, index) {
         if (index >= _products.length) {
           return const Padding(

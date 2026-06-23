@@ -68,6 +68,7 @@ export default function AdminReviewsPage() {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left">
             <tr>
+              <th className="px-4 py-3">STT</th>
               <th className="px-4 py-3">Khách</th>
               <th className="px-4 py-3">Sản phẩm</th>
               <th className="px-4 py-3">Sao</th>
@@ -77,8 +78,9 @@ export default function AdminReviewsPage() {
             </tr>
           </thead>
           <tbody>
-            {data?.items.map((r) => (
+            {data?.items.map((r, index) => (
               <tr key={r.id} className="border-t">
+                <td className="px-4 py-3 text-slate-500">{(((data?.pageNumber ?? 1) - 1) * (data?.pageSize ?? 1)) + index + 1}</td>
                 <td className="px-4 py-3">{r.userName}</td>
                 <td className="px-4 py-3 max-w-[140px] truncate">{r.productName}</td>
                 <td className="px-4 py-3">{"★".repeat(r.rating)}</td>
@@ -113,7 +115,7 @@ export default function AdminReviewsPage() {
         </table>
         {data && data.totalPages > 1 && (
           <div className="border-t p-4">
-            <Pagination pageNumber={data.pageNumber} totalPages={data.totalPages} onPageChange={setPage} />
+            <Pagination pageNumber={data.pageNumber} totalPages={data.totalPages} totalItems={data.totalItems} onPageChange={setPage} />
           </div>
         )}
       </AdminDataTable>

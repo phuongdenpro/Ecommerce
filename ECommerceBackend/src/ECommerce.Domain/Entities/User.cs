@@ -1,5 +1,6 @@
 using ECommerce.Domain.Common;
 using ECommerce.Domain.Enums;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ECommerce.Domain.Entities;
 
@@ -15,6 +16,7 @@ public class User : BaseEntity
     public string? PasswordResetToken { get; set; }
     public DateTime? PasswordResetTokenExpiry { get; set; }
     /// <summary>Internal CRM notes visible to admin only.</summary>
+    /// 
     public string? AdminNotes { get; set; }
 
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();

@@ -56,8 +56,14 @@ function ProductsContent() {
   }, [page, search, categoryId, brandId]);
 
   useEffect(() => {
-    categoriesApi.getAll().then(setCategories).catch(() => {});
-    brandsApi.getAll().then(setBrands).catch(() => {});
+    categoriesApi
+      .getAll()
+      .then(setCategories)
+      .catch(() => {});
+    brandsApi
+      .getAll()
+      .then(setBrands)
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -106,13 +112,19 @@ function ProductsContent() {
         </Select>
       </div>
 
-      {error && <div className="mt-8"><ErrorState message={error} onRetry={load} /></div>}
+      {error && (
+        <div className="mt-8">
+          <ErrorState message={error} onRetry={load} />
+        </div>
+      )}
 
       {!error && (
         <>
           <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
             {loading
-              ? Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />)
+              ? Array.from({ length: 8 }).map((_, i) => (
+                  <ProductCardSkeleton key={i} />
+                ))
               : data?.items.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
 
@@ -134,6 +146,7 @@ function ProductsContent() {
               <Pagination
                 pageNumber={data.pageNumber}
                 totalPages={data.totalPages}
+                totalItems={data.totalItems}
                 onPageChange={setPage}
               />
             </div>

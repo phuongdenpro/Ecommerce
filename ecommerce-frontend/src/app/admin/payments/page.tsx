@@ -89,6 +89,7 @@ export default function AdminPaymentsPage() {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left text-slate-500">
             <tr>
+              <th className="px-4 py-3">STT</th>
               <th className="px-4 py-3">Mã GD</th>
               <th className="px-4 py-3">Đơn</th>
               <th className="px-4 py-3">Khách</th>
@@ -100,8 +101,9 @@ export default function AdminPaymentsPage() {
             </tr>
           </thead>
           <tbody>
-            {data?.items.map((p) => (
+            {data?.items.map((p, index) => (
               <tr key={p.id} className="border-t hover:bg-slate-50">
+                <td className="px-4 py-3 text-slate-500">{(((data?.pageNumber ?? 1) - 1) * (data?.pageSize ?? 1)) + index + 1}</td>
                 <td className="px-4 py-3 font-mono text-xs">{p.transactionId ?? p.id.slice(0, 8)}</td>
                 <td className="px-4 py-3">
                   <Link href={`/admin/orders/${p.orderId}`} className="text-indigo-600 hover:underline">
@@ -134,7 +136,7 @@ export default function AdminPaymentsPage() {
         </table>
         {data && data.totalPages > 1 && (
           <div className="border-t p-4">
-            <Pagination pageNumber={data.pageNumber} totalPages={data.totalPages} onPageChange={setPage} />
+            <Pagination pageNumber={data.pageNumber} totalPages={data.totalPages} totalItems={data.totalItems} onPageChange={setPage} />
           </div>
         )}
       </AdminDataTable>

@@ -1,0 +1,9 @@
+bin/
+obj/
+.vs/
+.git/
+.idea/
+*.user
+*.suo
+Dockerfile
+docker-compose.override.yml

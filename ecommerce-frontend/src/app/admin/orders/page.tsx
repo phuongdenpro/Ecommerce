@@ -119,6 +119,7 @@ export default function AdminOrdersPage() {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left text-slate-500">
             <tr>
+              <th className="px-4 py-3">STT</th>
               <th className="px-4 py-3">Mã đơn</th>
               <th className="px-4 py-3">Khách</th>
               <th className="px-4 py-3">SP</th>
@@ -130,8 +131,9 @@ export default function AdminOrdersPage() {
             </tr>
           </thead>
           <tbody>
-            {data?.items.map((o) => (
+            {data?.items.map((o, index) => (
               <tr key={o.id} className="border-t hover:bg-slate-50">
+                <td className="px-4 py-3 text-slate-500">{(((data?.pageNumber ?? 1) - 1) * (data?.pageSize ?? 1)) + index + 1}</td>
                 <td className="px-4 py-3 font-medium">{o.orderCode}</td>
                 <td className="px-4 py-3">{o.customerName}</td>
                 <td className="px-4 py-3">{o.itemCount}</td>
@@ -150,7 +152,7 @@ export default function AdminOrdersPage() {
         </table>
         {data && data.totalPages > 1 && (
           <div className="border-t p-4">
-            <Pagination pageNumber={data.pageNumber} totalPages={data.totalPages} onPageChange={setPage} />
+            <Pagination pageNumber={data.pageNumber} totalPages={data.totalPages} totalItems={data.totalItems} onPageChange={setPage} />
           </div>
         )}
       </AdminDataTable>
