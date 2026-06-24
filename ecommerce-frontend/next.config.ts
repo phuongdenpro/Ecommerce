@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://192.168.1.252:8080";
 
 const nextConfig: NextConfig = {
   images: {
@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "http",
-        hostname: "localhost",
+        hostname: "192.168.1.252",
       },
       {
         protocol: "https",
