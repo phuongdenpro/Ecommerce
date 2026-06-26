@@ -1,0 +1,23 @@
+name: Backend Docker Build
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'ECommerceBackend/**'
+      - '.github/workflows/backend-docker.yml'
+
+  workflow_dispatch:
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image with compose
+        run: docker compose -f ./ECommerceBackend/docker-compose.yml build
