@@ -1,0 +1,35 @@
+name: Backend Docker Push
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'ECommerceBackend/**'
+      - '.github/workflows/backend-docker-push.yml'
+
+  workflow_dispatch:
+
+jobs:
+  docker-push:
+    runs-on: ubuntu-latest
+
+    env:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build backend image
+        run: docker compose -f ./ECommerceBackend/docker-compose.yml build api
+
+      - name: Push backend image
+        run: docker compose -f ./ECommerceBackend/docker-compose.yml push api

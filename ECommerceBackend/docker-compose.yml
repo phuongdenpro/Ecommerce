@@ -19,6 +19,7 @@ services:
       retries: 10
 
   api:
+    image: ${DOCKER_USERNAME}/ecommerce-backend:latest
     build:
       context: .
       dockerfile: src/ECommerce.API/Dockerfile
