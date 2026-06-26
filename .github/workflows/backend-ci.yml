@@ -3,6 +3,7 @@ name: Backend CI
 on:
   push:
     branches:
+      - main
       - master
     paths:
       - 'ECommerceBackend/**'
@@ -11,6 +12,7 @@ on:
   pull_request:
     branches:
       - main
+      - master
     paths:
       - 'ECommerceBackend/**'
 
@@ -32,7 +34,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore packages
-        run: dotnet restore
+        run: dotnet restore src/ECommerce.API/ECommerce.API.csproj
 
-      - name: Build solution
-        run: dotnet build --configuration Release --no-restore
+      - name: Build API
+        run: dotnet build src/ECommerce.API/ECommerce.API.csproj --configuration Release --no-restore
