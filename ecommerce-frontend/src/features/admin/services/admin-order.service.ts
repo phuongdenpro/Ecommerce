@@ -107,4 +107,12 @@ export const adminOrderService = {
     const { data } = await apiClient.put<ApiResponse<OrderDetail>>(`/admin/orders/${orderId}/payment-status`, payload);
     return unwrapData(data);
   },
+
+  async exportCsv(query: AdminOrderQuery = {}) {
+    const response = await apiClient.get("/admin/orders/export", {
+      params: query,
+      responseType: "blob",
+    });
+    return response.data;
+  },
 };

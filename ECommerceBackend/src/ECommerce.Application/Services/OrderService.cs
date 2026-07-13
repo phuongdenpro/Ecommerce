@@ -468,4 +468,70 @@ public class OrderService : IOrderService
 
     private static string GenerateOrderCode() =>
         $"ORD-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString("N")[..6].ToUpperInvariant()}";
+
+    public async Task<byte[]> ExportOrdersToCsvAsync(OrderAdminQueryDto query, CancellationToken cancellationToken = default)
+    {
+        // Ignore pagination for export
+        var q = _context.Orders.AsNoTracking().Include(o => o.User).AsQueryable();
+
+        if (query.Status.HasValue)
+            q = q.Where(o => o.Status == query.Status);
+        if (query.PaymentStatus.HasValue)
+            q = q.Where(o => o.PaymentStatus == query.PaymentStatus);
+        if (query.CreatedFrom.HasValue)
+            q = q.Where(o => o.CreatedAt >= query.CreatedFrom);
+        if (query.CreatedTo.HasValue)
+            q = q.Where(o => o.CreatedAt <= query.CreatedTo);
+        if (query.PaymentMethod.HasValue)
+        {
+            var orderIds = _context.Payments.Where(p => p.Method == query.PaymentMethod).Select(p => p.OrderId);
+            q = q.Where(o => orderIds.Contains(o.Id));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var s = query.Search.Trim();
+            q = q.Where(o =>
+                o.OrderCode.Contains(s) ||
+                o.User.FullName.Contains(s) ||
+                o.User.Email.Contains(s) ||
+                (o.User.PhoneNumber != null && o.User.PhoneNumber.Contains(s)));
+        }
+
+        q = query.SortDescending ? q.OrderByDescending(o => o.CreatedAt) : q.OrderBy(o => o.CreatedAt);
+
+        var orders = await q.ToListAsync(cancellationToken);
+
+        var builder = new System.Text.StringBuilder();
+        // UTF-8 BOM for Excel
+        builder.Append('\uFEFF');
+        
+        // Header
+        builder.AppendLine("Mã đơn hàng,Khách hàng,Tổng tiền,Phí ship,Giảm giá,Thanh toán,Trạng thái,Thanh toán,Ngày tạo");
+
+        foreach (var o in orders)
+        {
+            var customerName = EscapeCsv(o.User?.FullName ?? "");
+            var total = o.TotalAmount.ToString("0.##");
+            var shipping = o.ShippingFee.ToString("0.##");
+            var discount = o.DiscountAmount.ToString("0.##");
+            var final = o.FinalAmount.ToString("0.##");
+            var status = o.Status.ToString();
+            var paymentStatus = o.PaymentStatus.ToString();
+            var created = o.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+
+            builder.AppendLine($"{o.OrderCode},{customerName},{total},{shipping},{discount},{final},{status},{paymentStatus},{created}");
+        }
+
+        return System.Text.Encoding.UTF8.GetBytes(builder.ToString());
+    }
+
+    private static string EscapeCsv(string value)
+    {
+        if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
+        {
+            return $"\"{value.Replace("\"", "\"\"")}\"";
+        }
+        return value;
+    }
 }

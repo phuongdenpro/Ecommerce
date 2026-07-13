@@ -50,7 +50,17 @@ class ProfilePage extends ConsumerWidget {
                   Text('Tài khoản', style: Theme.of(context).textTheme.headlineSmall),
                   const SizedBox(height: 20),
                   Card(
-                    child: Padding(
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: const BorderSide(color: AppColors.border, width: 0.5),
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: AppColors.cardGradient,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: const [AppColors.softShadow],
+                      ),
                       padding: const EdgeInsets.all(24),
                       child: Column(
                         children: [
@@ -154,8 +164,19 @@ class _ProfileMenuTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      elevation: 0,
       margin: const EdgeInsets.only(bottom: 10),
-      child: ListTile(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: AppColors.border, width: 0.5),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [AppColors.softShadow],
+        ),
+        child: ListTile(
         leading: Container(
           width: 40,
           height: 40,
@@ -168,6 +189,7 @@ class _ProfileMenuTile extends StatelessWidget {
         title: Text(title, style: Theme.of(context).textTheme.titleMedium),
         trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
         onTap: onTap,
+        ),
       ),
     );
   }

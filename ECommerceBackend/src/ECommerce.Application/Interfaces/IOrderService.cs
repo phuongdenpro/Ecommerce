@@ -15,4 +15,5 @@ public interface IOrderService
     Task AdminCancelOrderAsync(Guid orderId, CancellationToken cancellationToken = default);
     Task<OrderDetailDto> CreateOrderForAdminAsync(AdminCreateOrderRequestDto request, CancellationToken cancellationToken = default);
     Task<OrderDetailDto> UpdateOrderPaymentStatusAsync(Guid orderId, UpdateOrderPaymentStatusRequestDto request, CancellationToken cancellationToken = default);
+    Task<byte[]> ExportOrdersToCsvAsync(OrderAdminQueryDto query, CancellationToken cancellationToken = default);
 }

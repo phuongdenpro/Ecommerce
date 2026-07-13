@@ -143,9 +143,10 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage> {
                   margin: const EdgeInsets.all(20),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.card,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border),
+                    gradient: AppColors.cardGradient,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.border, width: 0.5),
+                    boxShadow: const [AppColors.softShadow],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,9 +191,10 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage> {
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.card,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border),
+                    gradient: AppColors.cardGradient,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.border, width: 0.5),
+                    boxShadow: const [AppColors.softShadow],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -264,9 +266,10 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage> {
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.card,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border),
+                    gradient: AppColors.cardGradient,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.border, width: 0.5),
+                    boxShadow: const [AppColors.softShadow],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

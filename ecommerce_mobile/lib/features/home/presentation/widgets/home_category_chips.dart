@@ -31,15 +31,26 @@ class HomeCategoryChips extends StatelessWidget {
           return FilterChip(
             selected: isFirst,
             showCheckmark: false,
-            avatar: Icon(icon, size: 18, color: isFirst ? AppColors.primary : AppColors.textSecondary),
+            elevation: isFirst ? 2 : 0,
+            pressElevation: 4,
+            shadowColor: AppColors.primary.withValues(alpha: 0.2),
+            avatar: Icon(icon, size: 18, color: isFirst ? Colors.white : AppColors.textSecondary),
             label: Text(label),
             labelStyle: TextStyle(
-              fontWeight: isFirst ? FontWeight.w600 : FontWeight.w500,
-              color: isFirst ? AppColors.primary : AppColors.textPrimary,
+              fontWeight: isFirst ? FontWeight.w700 : FontWeight.w500,
+              color: isFirst ? Colors.white : AppColors.textPrimary,
+              letterSpacing: -0.2,
             ),
-            selectedColor: AppColors.primary.withValues(alpha: 0.1),
+            selectedColor: AppColors.primary,
             backgroundColor: AppColors.card,
-            side: BorderSide(color: isFirst ? AppColors.primary.withValues(alpha: 0.3) : AppColors.border),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: isFirst ? Colors.transparent : AppColors.border,
+                width: 0.5,
+              ),
+            ),
             onSelected: (_) => onCategorySelected?.call(label),
           );
         },

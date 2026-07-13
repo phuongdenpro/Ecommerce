@@ -217,9 +217,10 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
       margin: const EdgeInsets.all(20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        gradient: AppColors.cardGradient,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border, width: 0.5),
+        boxShadow: const [AppColors.softShadow],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -278,9 +279,10 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        gradient: AppColors.cardGradient,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border, width: 0.5),
+        boxShadow: const [AppColors.softShadow],
       ),
       child: Form(
         key: _formKey,
@@ -331,9 +333,10 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        gradient: AppColors.cardGradient,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border, width: 0.5),
+        boxShadow: const [AppColors.softShadow],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -368,14 +371,12 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
+          color: _selectedPaymentMethod == method ? AppColors.primary.withValues(alpha: 0.05) : AppColors.card,
           border: Border.all(
             color: _selectedPaymentMethod == method ? AppColors.primary : AppColors.border,
             width: _selectedPaymentMethod == method ? 2 : 1,
           ),
-          borderRadius: BorderRadius.circular(8),
-          color: _selectedPaymentMethod == method
-              ? AppColors.primary.withValues(alpha: 0.05)
-              : null,
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           children: [

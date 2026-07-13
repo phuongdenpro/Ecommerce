@@ -12,6 +12,8 @@ export interface ProductQuery extends PaginationQuery {
   inStock?: boolean;
   isFeatured?: boolean;
   search?: string;
+  sortBy?: string;
+  sortDesc?: boolean;
 }
 
 export const productsApi = {

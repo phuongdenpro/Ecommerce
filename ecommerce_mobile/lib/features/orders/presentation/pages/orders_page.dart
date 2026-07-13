@@ -90,7 +90,18 @@ class OrdersPage extends ConsumerWidget {
                             final statusColor = _statusColor(order.status);
 
                             return Card(
-                              child: InkWell(
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                side: const BorderSide(color: AppColors.border, width: 0.5),
+                              ),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: AppColors.cardGradient,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: const [AppColors.softShadow],
+                                ),
+                                child: InkWell(
                                 borderRadius: BorderRadius.circular(16),
                                 onTap: () => context.push(RoutePaths.orderDetail(order.id)),
                                 child: Padding(
@@ -163,6 +174,7 @@ class OrdersPage extends ConsumerWidget {
                                   ),
                                 ),
                               ),
+                             ),
                             );
                           },
                         ),

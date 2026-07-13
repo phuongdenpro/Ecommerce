@@ -62,8 +62,10 @@ class _QuickActionTile extends StatelessWidget {
         child: Ink(
           padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
+            gradient: AppColors.cardGradient,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: AppColors.border, width: 0.5),
+            boxShadow: const [AppColors.softShadow],
           ),
           child: Column(
             children: [

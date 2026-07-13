@@ -25,16 +25,10 @@ class ProductCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: Ink(
           decoration: BoxDecoration(
-            color: AppColors.card,
+            gradient: AppColors.cardGradient,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            border: Border.all(color: AppColors.border, width: 0.5),
+            boxShadow: const [AppColors.softShadow],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,9 +36,12 @@ class ProductCard extends StatelessWidget {
               Expanded(
                 child: Stack(
                   children: [
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
-                      child: _ProductImage(imageUrl: product.imageUrl),
+                    Hero(
+                      tag: 'product_image_${product.id}',
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                        child: _ProductImage(imageUrl: product.imageUrl),
+                      ),
                     ),
                     if (!inStock)
                       Positioned(
@@ -69,12 +66,19 @@ class ProductCard extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppColors.error,
+                            gradient: const LinearGradient(colors: [Colors.orange, AppColors.error]),
                             borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.error.withValues(alpha: 0.3),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: const Text(
                             'Giảm giá',
-                            style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                            style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
                           ),
                         ),
                       ),
@@ -90,7 +94,10 @@ class ProductCard extends StatelessWidget {
                       product.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.2,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -102,38 +109,61 @@ class ProductCard extends StatelessWidget {
                     const SizedBox(height: 10),
                     Row(
                       children: [
-                        Text(
-                          formatCurrency(product.displayPrice),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primary,
-                            fontSize: 15,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                formatCurrency(product.displayPrice),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.primary,
+                                  fontSize: 15,
+                                  letterSpacing: -0.3,
+                                ),
+                              ),
+                              if (product.hasDiscount) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  formatCurrency(product.price),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
-                        if (product.hasDiscount) ...[
-                          const SizedBox(width: 6),
-                          Text(
-                            formatCurrency(product.price),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                              decoration: TextDecoration.lineThrough,
-                            ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: inStock ? AppColors.success.withValues(alpha: 0.1) : AppColors.error.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
                           ),
-                        ],
-                        const Spacer(),
-                        Icon(
-                          Icons.inventory_2_outlined,
-                          size: 14,
-                          color: inStock ? AppColors.success : AppColors.textSecondary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${product.stockQuantity}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: inStock ? AppColors.textSecondary : AppColors.error,
-                            fontWeight: FontWeight.w500,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.inventory_2_rounded,
+                                size: 12,
+                                color: inStock ? AppColors.success : AppColors.error,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${product.stockQuantity}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: inStock ? AppColors.success : AppColors.error,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],

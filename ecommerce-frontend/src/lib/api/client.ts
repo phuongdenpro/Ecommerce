@@ -14,7 +14,7 @@ export { ApiError };
 function getApiUrl(): string {
   const base = process.env.NEXT_PUBLIC_API_BASE_URL;
   if (!base) {
-    throw new Error("NEXT_PUBLIC_API_BASE_URL is not configured");
+    throw new Error("Chưa cấu hình địa chỉ máy chủ API. Vui lòng liên hệ quản trị viên.");
   }
   return `${base.replace(/\/$/, "")}/api`;
 }
@@ -37,8 +37,9 @@ async function refreshAccessToken(): Promise<string> {
   const accessToken = authStorage.getAccessToken();
   const refreshToken = authStorage.getRefreshToken();
   if (!accessToken || !refreshToken) {
-    throw new ApiError("Session expired", 401);
+    throw new ApiError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
   }
+
 
   const { data } = await axios.post<ApiResponse<AuthResponse>>(
     `${getApiUrl()}/auth/refresh-token`,
@@ -133,13 +134,13 @@ apiClient.interceptors.response.use(
         JSON.stringify(error.response?.data),
       );
       const message =
-        error.response?.data?.message || error.message || "Request failed";
+        error.response?.data?.message || error.message || "Yêu cầu thất bại. Vui lòng thử lại.";
       throw new ApiError(message, error.response?.status, error.response?.data?.errors);
     }
 
     if (original.url?.includes("/auth/refresh-token")) {
       logoutAndRedirect();
-      throw new ApiError("Session expired", 401);
+      throw new ApiError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
     }
 
     if (isRefreshing) {

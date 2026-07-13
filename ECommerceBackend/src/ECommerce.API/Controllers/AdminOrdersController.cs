@@ -21,4 +21,11 @@ public class AdminOrdersController : ApiControllerBase
     [HttpPut("{id:guid}/payment-status")]
     public async Task<IActionResult> UpdatePaymentStatus(Guid id, [FromBody] UpdateOrderPaymentStatusRequestDto request, CancellationToken ct) =>
         OkResponse(await _orderService.UpdateOrderPaymentStatusAsync(id, request, ct), "Payment status updated");
+
+    [HttpGet("export")]
+    public async Task<IActionResult> Export([FromQuery] OrderAdminQueryDto query, CancellationToken ct)
+    {
+        var fileBytes = await _orderService.ExportOrdersToCsvAsync(query, ct);
+        return File(fileBytes, "text/csv", $"orders_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv");
+    }
 }

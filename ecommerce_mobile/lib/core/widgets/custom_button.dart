@@ -38,13 +38,30 @@ class CustomButton extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       height: 52,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: bgColor,
-          disabledBackgroundColor: bgColor.withValues(alpha: 0.6),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: (!outlined && enabled) ? AppColors.primaryGradient : null,
+          color: (!enabled || outlined) ? bgColor.withValues(alpha: 0.6) : null,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: (!outlined && enabled)
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
         ),
-        onPressed: !enabled || isLoading ? null : onPressed,
-        child: _buildChild(context, Colors.white),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            disabledBackgroundColor: Colors.transparent,
+          ),
+          onPressed: !enabled || isLoading ? null : onPressed,
+          child: _buildChild(context, Colors.white),
+        ),
       ),
     );
   }

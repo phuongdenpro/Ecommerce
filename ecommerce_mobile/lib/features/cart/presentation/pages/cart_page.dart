@@ -77,15 +77,15 @@ class CartPage extends ConsumerWidget {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-                            decoration: BoxDecoration(
+                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                            decoration: const BoxDecoration(
                               color: AppColors.card,
-                              border: const Border(top: BorderSide(color: AppColors.border)),
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, -4),
+                                  color: Color(0x0F000000), // 6% opacity black
+                                  blurRadius: 24,
+                                  offset: Offset(0, -8),
                                 ),
                               ],
                             ),
@@ -150,7 +150,17 @@ class _CartItemCard extends StatelessWidget {
     final canIncrease = item.quantity < item.stockQuantity && item.isInStock;
 
     return Card(
-      child: Padding(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: AppColors.border, width: 0.5),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: AppColors.cardGradient,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [AppColors.softShadow],
+        ),
         padding: const EdgeInsets.all(12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,

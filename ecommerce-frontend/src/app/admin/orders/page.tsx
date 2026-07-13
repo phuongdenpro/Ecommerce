@@ -21,21 +21,21 @@ import { Pagination } from "@/components/ui/pagination";
 const STATUSES = ["Pending", "Confirmed", "Processing", "Shipping", "Delivered", "Cancelled"];
 const PAYMENT_STATUSES = ["Pending", "Paid", "Failed", "Refunded"];
 
-function exportCsv(items: OrderListItem[]) {
-  const header = "OrderCode,Customer,Items,Total,Payment,Status,CreatedAt\n";
-  const rows = items
-    .map(
-      (o) =>
-        `${o.orderCode},"${o.customerName ?? ""}",${o.itemCount},${o.finalAmount},${o.paymentStatus},${o.status},${o.createdAt}`,
-    )
-    .join("\n");
-  const blob = new Blob([header + rows], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `orders-${Date.now()}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+import { toast } from "sonner";
+
+async function handleExportCsv(query: { search?: string; status?: string; paymentStatus?: string; createdFrom?: string; createdTo?: string; }) {
+  try {
+    const blob = await adminOrderService.exportCsv(query);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `orders_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Đã tải xuống file CSV thành công.");
+  } catch (error) {
+    toast.error("Lỗi khi tải file CSV. Vui lòng thử lại sau.");
+  }
 }
 
 export default function AdminOrdersPage() {
@@ -84,7 +84,17 @@ export default function AdminOrdersPage() {
         breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "Đơn hàng" }]}
         actions={
           <>
-            <Button variant="outline" onClick={() => data && exportCsv(data.items)} disabled={!data?.items.length}>
+            <Button 
+              variant="outline" 
+              onClick={() => handleExportCsv({ 
+                search: search || undefined, 
+                status: status || undefined, 
+                paymentStatus: paymentStatus || undefined, 
+                createdFrom: from || undefined, 
+                createdTo: to ? `${to}T23:59:59` : undefined 
+              })} 
+              disabled={!data?.items.length}
+            >
               <Download className="h-4 w-4" />
               Export CSV
             </Button>

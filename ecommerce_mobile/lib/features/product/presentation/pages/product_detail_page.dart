@@ -126,17 +126,20 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: product.imageUrl != null && product.imageUrl!.isNotEmpty
-                            ? Image.network(product.imageUrl!, height: 280, fit: BoxFit.cover)
-                            : Container(
-                                height: 280,
-                                color: AppColors.border.withValues(alpha: 0.5),
-                                child: const Center(
-                                  child: Icon(Icons.image_outlined, size: 64, color: AppColors.textSecondary),
+                      Hero(
+                        tag: 'product_image_${product.id}',
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                              ? Image.network(product.imageUrl!, height: 320, fit: BoxFit.cover)
+                              : Container(
+                                  height: 320,
+                                  color: AppColors.border.withValues(alpha: 0.5),
+                                  child: const Center(
+                                    child: Icon(Icons.image_outlined, size: 64, color: AppColors.textSecondary),
+                                  ),
                                 ),
-                              ),
+                        ),
                       ),
                       const SizedBox(height: 20),
                       Row(
@@ -218,15 +221,15 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-                decoration: BoxDecoration(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                decoration: const BoxDecoration(
                   color: AppColors.card,
-                  border: const Border(top: BorderSide(color: AppColors.border)),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 12,
-                      offset: const Offset(0, -4),
+                      color: Color(0x0F000000), // 6% opacity black
+                      blurRadius: 24,
+                      offset: Offset(0, -8),
                     ),
                   ],
                 ),

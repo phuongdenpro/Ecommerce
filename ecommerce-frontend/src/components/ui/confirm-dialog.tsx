@@ -1,14 +1,16 @@
 "use client";
 
+import { AlertTriangle } from "lucide-react";
 import { Button } from "./button";
 
 export function ConfirmDialog({
   open,
   title,
   message,
-  confirmLabel = "Xóa",
+  confirmLabel = "Xác nhận",
   cancelLabel = "Hủy",
   isLoading,
+  variant = "danger",
   onConfirm,
   onCancel,
 }: {
@@ -18,30 +20,37 @@ export function ConfirmDialog({
   confirmLabel?: string;
   cancelLabel?: string;
   isLoading?: boolean;
+  variant?: "danger" | "primary";
   onConfirm: () => void;
   onCancel: () => void;
 }) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
       <div
-        className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
-        onClick={onCancel}
+        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+        onClick={!isLoading ? onCancel : undefined}
         aria-hidden
       />
       <div
         role="dialog"
         aria-modal
-        className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+        className="relative w-full max-w-sm rounded-2xl bg-white dark:bg-slate-800 p-6 shadow-2xl animate-scale-in"
       >
-        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-        <p className="mt-2 text-sm text-slate-600">{message}</p>
-        <div className="mt-6 flex justify-end gap-3">
+        {/* Icon */}
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 dark:bg-red-900/30 mb-4">
+          <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
+        </div>
+
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{title}</h2>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{message}</p>
+
+        <div className="mt-6 flex gap-3 justify-end">
           <Button variant="outline" onClick={onCancel} disabled={isLoading}>
             {cancelLabel}
           </Button>
-          <Button variant="danger" onClick={onConfirm} isLoading={isLoading}>
+          <Button variant={variant} onClick={onConfirm} isLoading={isLoading}>
             {confirmLabel}
           </Button>
         </div>

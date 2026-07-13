@@ -23,4 +23,16 @@ abstract final class AppColors {
     end: Alignment.bottomCenter,
     colors: [Color(0xFFEFF6FF), surface],
   );
+
+  static const LinearGradient cardGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Colors.white, Color(0xFFF8FAFC)],
+  );
+
+  static const BoxShadow softShadow = BoxShadow(
+    color: Color(0x0A000000), // 4% opacity black
+    blurRadius: 16,
+    offset: Offset(0, 8),
+  );
 }
